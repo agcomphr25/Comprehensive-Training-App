@@ -10,7 +10,8 @@
     "build": "cd client && vite build",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx server/src/db/migrate.ts",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "db:seed": "tsx server/src/db/seed.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.9.0",
