@@ -4,6 +4,7 @@ import TrainerToday from "./pages/TrainerToday";
 import PrintSheet from "./pages/PrintSheet";
 import TraineeQuiz from "./pages/TraineeQuiz";
 import Library from "./pages/Library";
+import TrainingHistory from "./pages/TrainingHistory";
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
             <nav style={{ display: "flex", gap: 16, marginTop: 16 }}>
               <Link href="/trainer">Trainer Dashboard</Link>
               <Link href="/library">Library Management</Link>
+              <Link href="/history">Training History</Link>
             </nav>
           </div>
         </Route>
@@ -25,6 +27,10 @@ export default function App() {
 
         <Route path="/library">
           <Library />
+        </Route>
+
+        <Route path="/history">
+          <TrainingHistory />
         </Route>
 
         <Route path="/print/:sessionId">

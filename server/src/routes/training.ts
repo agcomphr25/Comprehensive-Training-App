@@ -50,13 +50,24 @@ trainingRouter.post("/sessions/start", async (req, res) => {
   if (!t) return res.status(404).json({ error: "Trainee not found" });
   if (!t.roleId) return res.status(400).json({ error: "Trainee has no role assigned" });
 
+  // Find facility topic if provided
+  let facilityTopicId: string | null = null;
+  if (facilityTopicCode) {
+    const [topic] = await db
+      .select()
+      .from(facilityTopics)
+      .where(eq(facilityTopics.code, facilityTopicCode));
+    facilityTopicId = topic?.id ?? null;
+  }
+
   // Create session
   const [session] = await db
     .insert(dailySessions)
     .values({
       traineeId,
       trainerName,
-      sessionDate: toMidnightISO(date)
+      sessionDate: toMidnightISO(date),
+      facilityTopicId
     })
     .returning();
 
@@ -85,7 +96,15 @@ trainingRouter.post("/sessions/start", async (req, res) => {
 });
 
 /**
- * 2) Get session details (for UI + print)
+ * 2a) List all sessions
+ */
+trainingRouter.get("/sessions", async (_req, res) => {
+  const rows = await db.select().from(dailySessions);
+  res.json(rows);
+});
+
+/**
+ * 2b) Get session details (for UI + print)
  */
 trainingRouter.get("/sessions/:id", async (req, res) => {
   const sessionId = req.params.id;
@@ -270,6 +289,37 @@ const SubmitQuiz = z.object({
       answer: z.string().optional().nullable()
     })
   )
+});
+
+/**
+ * Sign session (competency attestation)
+ */
+const SignSession = z.object({
+  traineeSignature: z.string().min(1),
+  trainerSignature: z.string().min(1),
+  competencyAttested: z.boolean().optional(),
+  notes: z.string().optional().nullable()
+});
+
+trainingRouter.patch("/sessions/:id/sign", async (req, res) => {
+  const sessionId = req.params.id;
+  const parsed = SignSession.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json(parsed.error.flatten());
+
+  const [updated] = await db
+    .update(dailySessions)
+    .set({
+      traineeSignature: parsed.data.traineeSignature,
+      trainerSignature: parsed.data.trainerSignature,
+      signedAt: new Date(),
+      competencyAttested: parsed.data.competencyAttested ?? true,
+      notes: parsed.data.notes ?? null
+    })
+    .where(eq(dailySessions.id, sessionId))
+    .returning();
+
+  if (!updated) return res.status(404).json({ error: "Session not found" });
+  res.json(updated);
 });
 
 trainingRouter.post("/quizzes/:id/submit", async (req, res) => {

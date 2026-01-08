@@ -103,7 +103,13 @@ export const dailySessions = pgTable("daily_sessions", {
   id: uuid("id").defaultRandom().primaryKey(),
   traineeId: uuid("trainee_id").notNull().references(() => trainees.id),
   trainerName: text("trainer_name").notNull(),
-  sessionDate: timestamp("session_date").notNull(), // store date as midnight local later
+  sessionDate: timestamp("session_date").notNull(),
+  facilityTopicId: uuid("facility_topic_id").references(() => facilityTopics.id),
+  traineeSignature: text("trainee_signature"),
+  trainerSignature: text("trainer_signature"),
+  signedAt: timestamp("signed_at"),
+  competencyAttested: boolean("competency_attested").default(false).notNull(),
+  notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull()
 });
 

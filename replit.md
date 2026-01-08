@@ -1,45 +1,78 @@
-# Fullstack Monorepo
+# Train-the-Trainer Builder
 
 ## Overview
-A full-stack TypeScript application with React frontend, Express backend, and PostgreSQL database using Drizzle ORM.
+A full-stack Train-the-Trainer application for manufacturing training programs. Implements a 4-step competency training model with S-O-A (Strength, Opportunity, Action) coaching framework.
+
+## Training Philosophy
+- **4-Step Method**: Trainer Does/Explains → Trainer Does/Trainee Explains → Trainee Does/Trainer Coaches → Trainee Does/Trainer Observes
+- **S-O-A Coaching**: Strength-first, positive coaching approach
+- **Critical Points**: Safety, quality, and compliance checkpoints per work instruction
+- **Competency Attestation**: Digital signatures and competency verification
 
 ## Project Structure
 ```
-/client          - Vite React app (port 5000)
-  /src           - React source files
-/server          - Express API (port 3001)
-  /src           - Server source files
-    /db          - Database configuration and schema
-    /routes      - API routes
-    app.ts       - Main Express app
-/shared          - Shared Zod schemas and types
-/drizzle         - Database migrations
-vite.config.ts   - Vite configuration (root)
-drizzle.config.ts - Drizzle configuration
-tsconfig.json    - TypeScript configuration
+/client               - Vite React app (port 5000)
+  /src/pages          - React page components
+    TrainerToday.tsx  - Daily session management
+    Library.tsx       - Training content management (9 tabs)
+    TrainingHistory.tsx - Progress dashboard
+    PrintSheet.tsx    - Printable training sheet
+    TraineeQuiz.tsx   - Daily quiz interface
+/server               - Express API (port 3000)
+  /src/routes         - API routes
+    library.ts        - Content CRUD (departments, roles, tasks, WIs, etc.)
+    training.ts       - Session management, quiz generation
+    trainees.ts       - Trainee management
+  /src/db             - Database configuration
+    schema.ts         - Drizzle ORM schema (13 tables)
+/drizzle              - Database migrations
 ```
 
-## Key Technologies
-- **Frontend**: React 18, Vite, TypeScript
-- **Backend**: Express, TypeScript, tsx
-- **Database**: PostgreSQL with Drizzle ORM, Neon serverless
-- **Validation**: Zod schemas shared between frontend and backend
+## Database Schema
+- **departments** - Organizational units
+- **roles** - Positions/job roles
+- **tasks** - Individual training tasks
+- **work_instructions** - WI documents with codes and revisions
+- **critical_points** - Safety/quality checkpoints per WI
+- **role_tasks** - Task assignments per role
+- **facility_topics** - PPE, FOD, ITAR, etc.
+- **quiz_questions** - MCQ, TF, SHORT question bank
+- **trainees** - People being trained
+- **daily_sessions** - Training session records with signatures
+- **daily_task_blocks** - 4-step tracking + SOA notes
+- **daily_quizzes** - Quiz attempts and scores
+- **daily_quiz_answers** - Individual answer records
+
+## Key Features
+1. **Library Management** - Create/manage departments, roles, tasks, work instructions, critical points, facility topics, quiz questions, and trainees
+2. **Training Sessions** - Start sessions, track 4-step completion, record SOA coaching notes
+3. **Digital Attestation** - Trainer/trainee signatures and competency attestation
+4. **Printable Sheets** - Browser-printable training documentation
+5. **Auto-graded Quizzes** - 80% pass threshold, MCQ and TF auto-graded
+
+## API Endpoints
+- `GET/POST/DELETE /api/library/departments`
+- `GET/POST/DELETE /api/library/roles`
+- `GET/POST/PATCH/DELETE /api/library/work-instructions`
+- `GET/POST/PATCH/DELETE /api/library/tasks`
+- `GET/POST/DELETE /api/library/critical-points`
+- `GET/POST/DELETE /api/library/role-tasks`
+- `GET/POST/DELETE /api/library/facility-topics`
+- `GET/POST/PATCH/DELETE /api/library/quiz-questions`
+- `GET/POST/DELETE /api/trainees`
+- `GET /api/training/sessions`
+- `POST /api/training/sessions/start`
+- `GET /api/training/sessions/:id`
+- `PATCH /api/training/sessions/:id/sign`
+- `PATCH /api/training/task-blocks/:id`
+- `POST /api/training/sessions/:id/quiz/generate`
+- `POST /api/training/quizzes/:id/submit`
 
 ## Scripts
-- `npm run dev` - Start both client and server in development mode
-- `npm run dev:client` - Start only the Vite dev server
-- `npm run dev:server` - Start only the Express server
-- `npm run build` - Build the client for production
-- `npm run db:generate` - Generate Drizzle migrations
-- `npm run db:migrate` - Run migrations
-- `npm run db:push` - Push schema changes directly
+- `npm run dev` - Start both client and server
+- `npm run db:push` - Push schema changes to database
 
 ## Environment Variables
 - `DATABASE_URL` - PostgreSQL connection string (auto-configured)
-- `NODE_ENV` - Environment mode (development/production)
-- `SESSION_SECRET` - Secret for session management
-
-## Architecture
-- Vite proxies `/api` requests to the Express server on port 3001
-- Shared types ensure type safety between frontend and backend
-- Zod schemas provide runtime validation on both ends
+- `NODE_ENV` - Environment mode
+- `SESSION_SECRET` - Session management secret
