@@ -5,6 +5,7 @@ import "dotenv/config";
 import { healthRouter } from "./routes/health";
 import { libraryRouter } from "./routes/library";
 import { trainingRouter } from "./routes/training";
+import { traineesRouter } from "./routes/trainees";
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(express.json({ limit: "2mb" }));
 app.use("/api/health", healthRouter);
 app.use("/api/library", libraryRouter);
 app.use("/api/training", trainingRouter);
+app.use("/api/trainees", traineesRouter);
 
 const port = Number(process.env.PORT || 3000);
 app.listen(port, "0.0.0.0", () => {

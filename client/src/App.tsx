@@ -1,45 +1,47 @@
-import React, { useEffect, useState } from "react";
-
-type Role = { id: string; name: string; description?: string | null };
+import React from "react";
+import { Route, Switch, Link } from "wouter";
+import TrainerToday from "./pages/TrainerToday";
+import PrintSheet from "./pages/PrintSheet";
+import TraineeQuiz from "./pages/TraineeQuiz";
+import Library from "./pages/Library";
 
 export default function App() {
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [name, setName] = useState("");
-
-  async function load() {
-    const r = await fetch("/api/library/roles");
-    setRoles(await r.json());
-  }
-
-  async function createRole() {
-    await fetch("/api/library/roles", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name })
-    });
-    setName("");
-    await load();
-  }
-
-  useEffect(() => { load(); }, []);
-
   return (
     <div style={{ fontFamily: "sans-serif", padding: 20 }}>
-      <h1>Train-the-Trainer Builder (MVP)</h1>
+      <Switch>
+        <Route path="/">
+          <div>
+            <h1>Train-the-Trainer Builder (MVP)</h1>
+            <nav style={{ display: "flex", gap: 16, marginTop: 16 }}>
+              <Link href="/trainer">Trainer Dashboard</Link>
+              <Link href="/library">Library Management</Link>
+            </nav>
+          </div>
+        </Route>
 
-      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="New role name" />
-        <button onClick={createRole}>Add Role</button>
-        <button onClick={load}>Refresh</button>
-      </div>
+        <Route path="/trainer">
+          <TrainerToday />
+        </Route>
 
-      <ul style={{ marginTop: 16 }}>
-        {roles.map((r) => (
-          <li key={r.id}>
-            <b>{r.name}</b> {r.description ? `- ${r.description}` : ""}
-          </li>
-        ))}
-      </ul>
+        <Route path="/library">
+          <Library />
+        </Route>
+
+        <Route path="/print/:sessionId">
+          {(params) => <PrintSheet sessionId={params.sessionId} />}
+        </Route>
+
+        <Route path="/quiz/:sessionId">
+          {(params) => <TraineeQuiz sessionId={params.sessionId} />}
+        </Route>
+
+        <Route>
+          <div>
+            <h1>404 - Page Not Found</h1>
+            <Link href="/">Go Home</Link>
+          </div>
+        </Route>
+      </Switch>
     </div>
   );
 }
