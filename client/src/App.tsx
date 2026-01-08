@@ -1,89 +1,45 @@
-import { useState, useEffect } from "react";
-import type { User, ApiResponse } from "@shared/index";
+import React, { useEffect, useState } from "react";
 
-function App() {
-  const [users, setUsers] = useState<User[]>([]);
+type Role = { id: string; name: string; description?: string | null };
+
+export default function App() {
+  const [roles, setRoles] = useState<Role[]>([]);
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const fetchUsers = async () => {
-    try {
-      const res = await fetch("/api/users");
-      const data: ApiResponse<User[]> = await res.json();
-      if (data.success && data.data) {
-        setUsers(data.data);
-      }
-    } catch (err) {
-      console.error("Failed to fetch users:", err);
-    }
-  };
+  async function load() {
+    const r = await fetch("/api/library/roles");
+    setRoles(await r.json());
+  }
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  async function createRole() {
+    await fetch("/api/library/roles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name })
+    });
+    setName("");
+    await load();
+  }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const res = await fetch("/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email }),
-      });
-      const data: ApiResponse<User> = await res.json();
-      if (data.success) {
-        setName("");
-        setEmail("");
-        fetchUsers();
-      }
-    } catch (err) {
-      console.error("Failed to create user:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => { load(); }, []);
 
   return (
-    <div className="container">
-      <h1>Fullstack Monorepo</h1>
-      <p>React + Express + Drizzle + Zod</p>
+    <div style={{ fontFamily: "sans-serif", padding: 20 }}>
+      <h1>Train-the-Trainer Builder (MVP)</h1>
 
-      <form onSubmit={handleSubmit} className="form">
-        <input
-          type="text"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <button type="submit" disabled={loading}>
-          {loading ? "Adding..." : "Add User"}
-        </button>
-      </form>
+      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="New role name" />
+        <button onClick={createRole}>Add Role</button>
+        <button onClick={load}>Refresh</button>
+      </div>
 
-      <h2>Users</h2>
-      {users.length === 0 ? (
-        <p>No users yet. Add one above!</p>
-      ) : (
-        <ul className="user-list">
-          {users.map((user) => (
-            <li key={user.id}>
-              <strong>{user.name}</strong> - {user.email}
-            </li>
-          ))}
-        </ul>
-      )}
+      <ul style={{ marginTop: 16 }}>
+        {roles.map((r) => (
+          <li key={r.id}>
+            <b>{r.name}</b> {r.description ? `- ${r.description}` : ""}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
-
-export default App;

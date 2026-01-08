@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "concurrently \"npm:dev:server\" \"npm:dev:client\"",
     "dev:server": "NODE_ENV=development tsx watch server/src/app.ts",
-    "dev:client": "vite --host 0.0.0.0 --port 5000",
-    "build": "vite build",
+    "dev:client": "cd client && vite --host 0.0.0.0",
+    "build": "cd client && vite build",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx server/src/db/migrate.ts",
     "db:push": "drizzle-kit push"
