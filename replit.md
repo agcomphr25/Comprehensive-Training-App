@@ -51,13 +51,13 @@ A full-stack Train-the-Trainer application for manufacturing training programs. 
 5. **Auto-graded Quizzes** - 80% pass threshold, MCQ and TF auto-graded
 
 ## API Endpoints
-- `GET/POST/DELETE /api/library/departments`
-- `GET/POST/DELETE /api/library/roles`
+- `GET/POST/PATCH/DELETE /api/library/departments`
+- `GET/POST/PATCH/DELETE /api/library/roles`
 - `GET/POST/PATCH/DELETE /api/library/work-instructions`
 - `GET/POST/PATCH/DELETE /api/library/tasks`
-- `GET/POST/DELETE /api/library/critical-points`
-- `GET/POST/DELETE /api/library/role-tasks`
-- `GET/POST/DELETE /api/library/facility-topics`
+- `GET/POST/PATCH/DELETE /api/library/critical-points`
+- `GET/POST/PATCH/DELETE /api/library/role-tasks`
+- `GET/POST/PATCH/DELETE /api/library/facility-topics`
 - `GET/POST/PATCH/DELETE /api/library/quiz-questions`
 - `GET/POST/DELETE /api/trainees`
 - `GET /api/training/sessions`
