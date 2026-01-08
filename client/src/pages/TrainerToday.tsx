@@ -39,7 +39,7 @@ export default function TrainerToday() {
   const [traineeId, setTraineeId] = useState<string | null>(null);
   const [trainerName, setTrainerName] = useState("Trainer");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-  const [facilityTopicId, setFacilityTopicId] = useState<string | null>(null);
+  const [facilityTopicCode, setFacilityTopicCode] = useState<string | null>(null);
 
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionData, setSessionData] = useState<SessionResp | null>(null);
@@ -51,17 +51,17 @@ export default function TrainerToday() {
     ]);
     setTrainees(traineeData);
     setFacilityTopics(topicData);
-    if (topicData.length > 0 && !facilityTopicId) {
-      setFacilityTopicId(topicData[0].id);
+    if (topicData.length > 0 && !facilityTopicCode) {
+      setFacilityTopicCode(topicData[0].code);
     }
   }
 
   async function startSession() {
-    if (!traineeId || !facilityTopicId) return;
+    if (!traineeId || !facilityTopicCode) return;
     const r = await fetch("/api/training/sessions/start", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ traineeId, trainerName, date, facilityTopicId })
+      body: JSON.stringify({ traineeId, trainerName, date, facilityTopicCode })
     });
     const data = await r.json();
     setSessionId(data.sessionId);
@@ -124,14 +124,14 @@ export default function TrainerToday() {
                 <Select
                   label="Facility Topic"
                   placeholder="Select topic..."
-                  data={facilityTopics.map(t => ({ value: t.id, label: `${t.code} - ${t.title}` }))}
-                  value={facilityTopicId}
-                  onChange={setFacilityTopicId}
+                  data={facilityTopics.map(t => ({ value: t.code, label: `${t.code} - ${t.title}` }))}
+                  value={facilityTopicCode}
+                  onChange={setFacilityTopicCode}
                 />
                 <Button
                   size="lg"
                   leftSection={<IconPlayerPlay size={20} />}
-                  disabled={!traineeId || !facilityTopicId}
+                  disabled={!traineeId || !facilityTopicCode}
                   onClick={startSession}
                 >
                   Start Session
