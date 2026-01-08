@@ -32,7 +32,7 @@ export default function App() {
         </Route>
 
         <Route path="/quiz/:sessionId">
-          {(params) => <TraineeQuiz sessionId={params.sessionId} />}
+          <TraineeQuiz />
         </Route>
 
         <Route>

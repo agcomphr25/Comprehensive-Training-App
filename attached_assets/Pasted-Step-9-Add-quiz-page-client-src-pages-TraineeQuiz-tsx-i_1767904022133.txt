@@ -1,3 +1,5 @@
+Step 9) Add quiz page
+client/src/pages/TraineeQuiz.tsx
 import React, { useEffect, useState } from "react";
 import { useRoute } from "wouter";
 
@@ -13,7 +15,7 @@ export default function TraineeQuiz() {
     const r = await fetch(`/api/training/sessions/${sessionId}/quiz/generate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ facilityTopicCode: "PPE" })
+      body: JSON.stringify({ facilityTopicCode: "PPE" }) // you can pass from Trainer later
     });
     const data = await r.json();
     setQuiz(data);
@@ -102,7 +104,7 @@ export default function TraineeQuiz() {
           <div>Score: {result.quiz.score} / {result.quiz.total}</div>
           <div>Passed: {String(result.quiz.passed)}</div>
           <div style={{ fontSize: 12, opacity: 0.8 }}>
-            Note: SHORT answers aren't auto-graded in MVP.
+            Note: SHORT answers aren’t auto-graded in MVP.
           </div>
         </div>
       )}
