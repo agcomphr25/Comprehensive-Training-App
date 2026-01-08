@@ -1,29 +1,67 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "wouter";
+import {
+  Container,
+  Title,
+  Card,
+  Select,
+  TextInput,
+  Button,
+  Group,
+  Stack,
+  Text,
+  Badge,
+  Checkbox,
+  Textarea,
+  Progress,
+  Divider,
+  Paper,
+  ThemeIcon,
+  Box,
+  Grid,
+  Accordion,
+} from "@mantine/core";
+import {
+  IconPlayerPlay,
+  IconPrinter,
+  IconClipboardCheck,
+  IconAlertTriangle,
+  IconCheck,
+} from "@tabler/icons-react";
 
 type Trainee = { id: string; name: string; roleId?: string | null };
+type FacilityTopic = { id: string; code: string; title: string };
 type SessionResp = { session: any; trainee: any; blocks: any[] };
 
 export default function TrainerToday() {
   const [trainees, setTrainees] = useState<Trainee[]>([]);
-  const [traineeId, setTraineeId] = useState("");
+  const [facilityTopics, setFacilityTopics] = useState<FacilityTopic[]>([]);
+  const [traineeId, setTraineeId] = useState<string | null>(null);
   const [trainerName, setTrainerName] = useState("Trainer");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-  const [facilityTopicCode, setFacilityTopicCode] = useState("PPE");
+  const [facilityTopicId, setFacilityTopicId] = useState<string | null>(null);
 
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionData, setSessionData] = useState<SessionResp | null>(null);
 
-  async function loadTrainees() {
-    const r = await fetch("/api/trainees"); // we'll add this endpoint in Phase 4
-    if (r.ok) setTrainees(await r.json());
+  async function loadData() {
+    const [traineeData, topicData] = await Promise.all([
+      fetch("/api/trainees").then(r => r.json()),
+      fetch("/api/library/facility-topics").then(r => r.json())
+    ]);
+    setTrainees(traineeData);
+    setFacilityTopics(topicData);
+    if (topicData.length > 0 && !facilityTopicId) {
+      setFacilityTopicId(topicData[0].id);
+    }
   }
 
   async function startSession() {
+    if (!traineeId || !facilityTopicId) return;
     const r = await fetch("/api/training/sessions/start", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ traineeId, trainerName, date, facilityTopicCode })
+      body: JSON.stringify({ traineeId, trainerName, date, facilityTopicId })
     });
     const data = await r.json();
     setSessionId(data.sessionId);
@@ -43,117 +81,235 @@ export default function TrainerToday() {
     if (sessionId) await loadSession(sessionId);
   }
 
-  useEffect(() => { loadTrainees(); }, []);
+  useEffect(() => { loadData(); }, []);
   useEffect(() => { if (sessionId) loadSession(sessionId); }, [sessionId]);
 
+  const calculateProgress = () => {
+    if (!sessionData?.blocks.length) return 0;
+    const total = sessionData.blocks.length * 4;
+    const completed = sessionData.blocks.reduce((acc, b) => {
+      return acc + (b.step1 ? 1 : 0) + (b.step2 ? 1 : 0) + (b.step3 ? 1 : 0) + (b.step4 ? 1 : 0);
+    }, 0);
+    return Math.round((completed / total) * 100);
+  };
+
   return (
-    <div>
-      <h2>Trainer Daily Session</h2>
+    <Container size="lg">
+      <Title order={2} mb="lg">Trainer Dashboard</Title>
 
-      <div style={{ display: "grid", gap: 8, maxWidth: 520 }}>
-        <label>
-          Trainee
-          <select value={traineeId} onChange={(e) => setTraineeId(e.target.value)} style={{ width: "100%" }}>
-            <option value="">Select trainee...</option>
-            {trainees.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-          </select>
-        </label>
+      {!sessionId ? (
+        <Grid>
+          <Grid.Col span={{ base: 12, md: 6 }}>
+            <Card>
+              <Title order={4} mb="md">Start New Session</Title>
+              <Stack gap="md">
+                <Select
+                  label="Trainee"
+                  placeholder="Select trainee..."
+                  data={trainees.map(t => ({ value: t.id, label: t.name }))}
+                  value={traineeId}
+                  onChange={setTraineeId}
+                />
+                <TextInput
+                  label="Trainer Name"
+                  value={trainerName}
+                  onChange={e => setTrainerName(e.target.value)}
+                />
+                <TextInput
+                  label="Date"
+                  type="date"
+                  value={date}
+                  onChange={e => setDate(e.target.value)}
+                />
+                <Select
+                  label="Facility Topic"
+                  placeholder="Select topic..."
+                  data={facilityTopics.map(t => ({ value: t.id, label: `${t.code} - ${t.title}` }))}
+                  value={facilityTopicId}
+                  onChange={setFacilityTopicId}
+                />
+                <Button
+                  size="lg"
+                  leftSection={<IconPlayerPlay size={20} />}
+                  disabled={!traineeId || !facilityTopicId}
+                  onClick={startSession}
+                >
+                  Start Session
+                </Button>
+              </Stack>
+            </Card>
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, md: 6 }}>
+            <Card>
+              <Title order={4} mb="md">4-Step Training Method</Title>
+              <Stack gap="sm">
+                <Paper p="sm" withBorder>
+                  <Group gap="sm">
+                    <Badge size="lg" circle>1</Badge>
+                    <Text size="sm"><b>Trainer Does / Explains</b> - Demonstrate the task while explaining key points</Text>
+                  </Group>
+                </Paper>
+                <Paper p="sm" withBorder>
+                  <Group gap="sm">
+                    <Badge size="lg" circle>2</Badge>
+                    <Text size="sm"><b>Trainer Does / Trainee Explains</b> - Repeat while trainee explains back</Text>
+                  </Group>
+                </Paper>
+                <Paper p="sm" withBorder>
+                  <Group gap="sm">
+                    <Badge size="lg" circle>3</Badge>
+                    <Text size="sm"><b>Trainee Does / Trainer Coaches</b> - Trainee performs with guidance</Text>
+                  </Group>
+                </Paper>
+                <Paper p="sm" withBorder>
+                  <Group gap="sm">
+                    <Badge size="lg" circle>4</Badge>
+                    <Text size="sm"><b>Trainee Does / Trainer Observes</b> - Independent performance</Text>
+                  </Group>
+                </Paper>
+              </Stack>
+            </Card>
+          </Grid.Col>
+        </Grid>
+      ) : (
+        <Stack gap="lg">
+          <Card>
+            <Group justify="space-between" align="center">
+              <div>
+                <Text size="sm" c="dimmed">Session for</Text>
+                <Title order={4}>{sessionData?.trainee?.name}</Title>
+              </div>
+              <Group>
+                <Button
+                  variant="light"
+                  leftSection={<IconPrinter size={16} />}
+                  component={Link}
+                  href={`/print/${sessionId}`}
+                >
+                  Print Sheet
+                </Button>
+                <Button
+                  variant="light"
+                  color="orange"
+                  leftSection={<IconClipboardCheck size={16} />}
+                  component={Link}
+                  href={`/quiz/${sessionId}`}
+                >
+                  Take Quiz
+                </Button>
+              </Group>
+            </Group>
+            <Divider my="md" />
+            <Group align="center" gap="md">
+              <Text size="sm" fw={500}>Overall Progress</Text>
+              <Progress value={calculateProgress()} size="lg" radius="xl" style={{ flex: 1 }} />
+              <Text size="sm" fw={600}>{calculateProgress()}%</Text>
+            </Group>
+          </Card>
 
-        <label>
-          Trainer name
-          <input value={trainerName} onChange={(e) => setTrainerName(e.target.value)} style={{ width: "100%" }} />
-        </label>
+          <Title order={4}>Tasks</Title>
 
-        <label>
-          Date
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ width: "100%" }} />
-        </label>
-
-        <label>
-          Facility topic today
-          <select value={facilityTopicCode} onChange={(e) => setFacilityTopicCode(e.target.value)} style={{ width: "100%" }}>
-            {["PPE","FOD","COUNTERFEIT","CHEM","FIRE","ITAR"].map(code => (
-              <option key={code} value={code}>{code}</option>
-            ))}
-          </select>
-        </label>
-
-        <button disabled={!traineeId} onClick={startSession}>Start Today's Session</button>
-      </div>
-
-      {sessionId && (
-        <div style={{ marginTop: 16, display: "flex", gap: 12 }}>
-          <Link href={`/print/${sessionId}`}>Print Sheet</Link>
-          <Link href={`/quiz/${sessionId}`}>Trainee Quiz</Link>
-        </div>
-      )}
-
-      {sessionData && (
-        <div style={{ marginTop: 16 }}>
-          <h3>Tasks for Today</h3>
-
-          {sessionData.blocks.map((b) => (
-            <div key={b.id} style={{ border: "1px solid #ddd", padding: 12, borderRadius: 8, marginBottom: 12 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+          {sessionData?.blocks.map((block) => (
+            <Card key={block.id}>
+              <Group justify="space-between" mb="md">
                 <div>
-                  <b>{b.taskName}</b>
-                  <div style={{ fontSize: 12, opacity: 0.8 }}>
-                    {b.wiCode ? `${b.wiCode} - ${b.wiTitle}` : "No WI linked"}
-                  </div>
+                  <Text fw={600} size="lg">{block.taskName}</Text>
+                  <Text size="sm" c="dimmed">
+                    {block.wiCode ? `${block.wiCode} - ${block.wiTitle}` : "No work instruction linked"}
+                  </Text>
                 </div>
-              </div>
+                <Badge
+                  size="lg"
+                  color={block.step1 && block.step2 && block.step3 && block.step4 ? "green" : "gray"}
+                  leftSection={block.step1 && block.step2 && block.step3 && block.step4 ? <IconCheck size={14} /> : null}
+                >
+                  {block.step1 && block.step2 && block.step3 && block.step4 ? "Complete" : "In Progress"}
+                </Badge>
+              </Group>
 
-              <div style={{ display: "flex", gap: 12, marginTop: 10 }}>
-                {(["step1","step2","step3","step4"] as const).map((s, idx) => (
-                  <label key={s} style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                    <input
-                      type="checkbox"
-                      checked={!!b[s]}
-                      onChange={(e) => patchBlock(b.id, { [s]: e.target.checked })}
-                    />
-                    Step {idx + 1}
-                  </label>
+              <Group gap="xl" mb="md">
+                {(["step1", "step2", "step3", "step4"] as const).map((s, idx) => (
+                  <Checkbox
+                    key={s}
+                    label={`Step ${idx + 1}`}
+                    checked={!!block[s]}
+                    onChange={(e) => patchBlock(block.id, { [s]: e.target.checked })}
+                    size="md"
+                  />
                 ))}
-              </div>
+              </Group>
 
-              <div style={{ marginTop: 10 }}>
-                <div style={{ fontSize: 12, fontWeight: 700 }}>SOA Coaching</div>
-                <textarea
-                  placeholder="Strength"
-                  value={b.strength ?? ""}
-                  onChange={(e) => patchBlock(b.id, { strength: e.target.value })}
-                  style={{ width: "100%", marginTop: 6 }}
-                />
-                <textarea
-                  placeholder="Opportunity"
-                  value={b.opportunity ?? ""}
-                  onChange={(e) => patchBlock(b.id, { opportunity: e.target.value })}
-                  style={{ width: "100%", marginTop: 6 }}
-                />
-                <textarea
-                  placeholder="Action"
-                  value={b.action ?? ""}
-                  onChange={(e) => patchBlock(b.id, { action: e.target.value })}
-                  style={{ width: "100%", marginTop: 6 }}
-                />
-              </div>
+              <Accordion variant="separated">
+                <Accordion.Item value="soa">
+                  <Accordion.Control>
+                    <Group gap="xs">
+                      <ThemeIcon size="sm" variant="light" color="teal">
+                        <IconClipboardCheck size={14} />
+                      </ThemeIcon>
+                      <Text size="sm" fw={500}>S-O-A Coaching Notes</Text>
+                    </Group>
+                  </Accordion.Control>
+                  <Accordion.Panel>
+                    <Stack gap="sm">
+                      <Textarea
+                        label="Strength"
+                        placeholder="What did they do well?"
+                        value={block.strength ?? ""}
+                        onChange={(e) => patchBlock(block.id, { strength: e.target.value })}
+                        minRows={2}
+                      />
+                      <Textarea
+                        label="Opportunity"
+                        placeholder="What could be improved?"
+                        value={block.opportunity ?? ""}
+                        onChange={(e) => patchBlock(block.id, { opportunity: e.target.value })}
+                        minRows={2}
+                      />
+                      <Textarea
+                        label="Action"
+                        placeholder="What action will be taken?"
+                        value={block.action ?? ""}
+                        onChange={(e) => patchBlock(block.id, { action: e.target.value })}
+                        minRows={2}
+                      />
+                    </Stack>
+                  </Accordion.Panel>
+                </Accordion.Item>
 
-              {b.criticalPoints?.length > 0 && (
-                <div style={{ marginTop: 10 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700 }}>Critical Points</div>
-                  <ul>
-                    {b.criticalPoints.map((cp: any) => (
-                      <li key={cp.id}>
-                        <b>{cp.label}</b> — {cp.detail}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
+                {block.criticalPoints?.length > 0 && (
+                  <Accordion.Item value="critical">
+                    <Accordion.Control>
+                      <Group gap="xs">
+                        <ThemeIcon size="sm" variant="light" color="orange">
+                          <IconAlertTriangle size={14} />
+                        </ThemeIcon>
+                        <Text size="sm" fw={500}>Critical Points ({block.criticalPoints.length})</Text>
+                      </Group>
+                    </Accordion.Control>
+                    <Accordion.Panel>
+                      <Stack gap="xs">
+                        {block.criticalPoints.map((cp: any) => (
+                          <Paper key={cp.id} p="sm" withBorder>
+                            <Group gap="sm">
+                              <Badge
+                                color={cp.severity === "critical" ? "red" : cp.severity === "major" ? "orange" : "green"}
+                                size="sm"
+                              >
+                                {cp.severity}
+                              </Badge>
+                              <Text size="sm"><b>{cp.label}</b> — {cp.detail}</Text>
+                            </Group>
+                          </Paper>
+                        ))}
+                      </Stack>
+                    </Accordion.Panel>
+                  </Accordion.Item>
+                )}
+              </Accordion>
+            </Card>
           ))}
-        </div>
+        </Stack>
       )}
-    </div>
+    </Container>
   );
 }

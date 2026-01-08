@@ -1,5 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "wouter";
+import {
+  Container,
+  Title,
+  Tabs,
+  Card,
+  TextInput,
+  Textarea,
+  Select,
+  Button,
+  Group,
+  Stack,
+  Text,
+  Badge,
+  ActionIcon,
+  Table,
+  Box,
+} from "@mantine/core";
+import { IconTrash, IconPlus } from "@tabler/icons-react";
 
 type Department = { id: string; name: string };
 type Role = { id: string; name: string; description?: string | null };
@@ -11,12 +28,7 @@ type FacilityTopic = { id: string; code: string; title: string; overview?: strin
 type QuizQuestion = { id: string; topicId?: string | null; taskId?: string | null; question: string; type: string; meta: any };
 type Trainee = { id: string; name: string; roleId?: string | null };
 
-const tabs = ["Departments", "Roles", "Work Instructions", "Tasks", "Critical Points", "Role-Tasks", "Facility Topics", "Quiz Questions", "Trainees"] as const;
-type Tab = typeof tabs[number];
-
 export default function Library() {
-  const [activeTab, setActiveTab] = useState<Tab>("Departments");
-
   const [departments, setDepartments] = useState<Department[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [workInstructions, setWorkInstructions] = useState<WorkInstruction[]>([]);
@@ -52,61 +64,59 @@ export default function Library() {
 
   useEffect(() => { loadAll(); }, []);
 
-  const cardStyle: React.CSSProperties = { border: "1px solid #ddd", padding: 16, borderRadius: 8, marginBottom: 12 };
-  const inputStyle: React.CSSProperties = { padding: 8, width: "100%", marginBottom: 8 };
-  const btnStyle: React.CSSProperties = { padding: "8px 16px", cursor: "pointer" };
-
   return (
-    <div style={{ fontFamily: "sans-serif", padding: 20, maxWidth: 1100, margin: "0 auto" }}>
-      <h1>Training Content Library</h1>
-      <p><Link href="/">Home</Link> | <Link href="/trainer">Trainer Dashboard</Link></p>
+    <Container size="lg">
+      <Title order={2} mb="lg">Content Library</Title>
 
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20, borderBottom: "2px solid #333", paddingBottom: 12 }}>
-        {tabs.map(t => (
-          <button
-            key={t}
-            onClick={() => setActiveTab(t)}
-            style={{ ...btnStyle, background: activeTab === t ? "#333" : "#eee", color: activeTab === t ? "#fff" : "#333" }}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
+      <Tabs defaultValue="departments" variant="pills">
+        <Tabs.List mb="lg">
+          <Tabs.Tab value="departments">Departments</Tabs.Tab>
+          <Tabs.Tab value="roles">Roles</Tabs.Tab>
+          <Tabs.Tab value="work-instructions">Work Instructions</Tabs.Tab>
+          <Tabs.Tab value="tasks">Tasks</Tabs.Tab>
+          <Tabs.Tab value="critical-points">Critical Points</Tabs.Tab>
+          <Tabs.Tab value="role-tasks">Role-Tasks</Tabs.Tab>
+          <Tabs.Tab value="facility-topics">Facility Topics</Tabs.Tab>
+          <Tabs.Tab value="quiz-questions">Quiz Questions</Tabs.Tab>
+          <Tabs.Tab value="trainees">Trainees</Tabs.Tab>
+        </Tabs.List>
 
-      {activeTab === "Departments" && (
-        <DepartmentsTab departments={departments} reload={loadAll} cardStyle={cardStyle} inputStyle={inputStyle} btnStyle={btnStyle} />
-      )}
-      {activeTab === "Roles" && (
-        <RolesTab roles={roles} reload={loadAll} cardStyle={cardStyle} inputStyle={inputStyle} btnStyle={btnStyle} />
-      )}
-      {activeTab === "Work Instructions" && (
-        <WorkInstructionsTab workInstructions={workInstructions} reload={loadAll} cardStyle={cardStyle} inputStyle={inputStyle} btnStyle={btnStyle} />
-      )}
-      {activeTab === "Tasks" && (
-        <TasksTab tasks={allTasks} departments={departments} workInstructions={workInstructions} reload={loadAll} cardStyle={cardStyle} inputStyle={inputStyle} btnStyle={btnStyle} />
-      )}
-      {activeTab === "Critical Points" && (
-        <CriticalPointsTab criticalPoints={criticalPoints} workInstructions={workInstructions} reload={loadAll} cardStyle={cardStyle} inputStyle={inputStyle} btnStyle={btnStyle} />
-      )}
-      {activeTab === "Role-Tasks" && (
-        <RoleTasksTab roleTasks={roleTasks} roles={roles} tasks={allTasks} reload={loadAll} cardStyle={cardStyle} inputStyle={inputStyle} btnStyle={btnStyle} />
-      )}
-      {activeTab === "Facility Topics" && (
-        <FacilityTopicsTab topics={facilityTopics} reload={loadAll} cardStyle={cardStyle} inputStyle={inputStyle} btnStyle={btnStyle} />
-      )}
-      {activeTab === "Quiz Questions" && (
-        <QuizQuestionsTab questions={quizQuestions} topics={facilityTopics} tasks={allTasks} reload={loadAll} cardStyle={cardStyle} inputStyle={inputStyle} btnStyle={btnStyle} />
-      )}
-      {activeTab === "Trainees" && (
-        <TraineesTab trainees={trainees} roles={roles} reload={loadAll} cardStyle={cardStyle} inputStyle={inputStyle} btnStyle={btnStyle} />
-      )}
-    </div>
+        <Tabs.Panel value="departments">
+          <DepartmentsTab departments={departments} reload={loadAll} />
+        </Tabs.Panel>
+        <Tabs.Panel value="roles">
+          <RolesTab roles={roles} reload={loadAll} />
+        </Tabs.Panel>
+        <Tabs.Panel value="work-instructions">
+          <WorkInstructionsTab workInstructions={workInstructions} reload={loadAll} />
+        </Tabs.Panel>
+        <Tabs.Panel value="tasks">
+          <TasksTab tasks={allTasks} departments={departments} workInstructions={workInstructions} reload={loadAll} />
+        </Tabs.Panel>
+        <Tabs.Panel value="critical-points">
+          <CriticalPointsTab criticalPoints={criticalPoints} workInstructions={workInstructions} reload={loadAll} />
+        </Tabs.Panel>
+        <Tabs.Panel value="role-tasks">
+          <RoleTasksTab roleTasks={roleTasks} roles={roles} tasks={allTasks} reload={loadAll} />
+        </Tabs.Panel>
+        <Tabs.Panel value="facility-topics">
+          <FacilityTopicsTab topics={facilityTopics} reload={loadAll} />
+        </Tabs.Panel>
+        <Tabs.Panel value="quiz-questions">
+          <QuizQuestionsTab questions={quizQuestions} topics={facilityTopics} tasks={allTasks} reload={loadAll} />
+        </Tabs.Panel>
+        <Tabs.Panel value="trainees">
+          <TraineesTab trainees={trainees} roles={roles} reload={loadAll} />
+        </Tabs.Panel>
+      </Tabs>
+    </Container>
   );
 }
 
-function DepartmentsTab({ departments, reload, cardStyle, inputStyle, btnStyle }: any) {
+function DepartmentsTab({ departments, reload }: { departments: Department[]; reload: () => void }) {
   const [name, setName] = useState("");
   async function create() {
+    if (!name.trim()) return;
     await fetch("/api/library/departments", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) });
     setName(""); reload();
   }
@@ -114,26 +124,42 @@ function DepartmentsTab({ departments, reload, cardStyle, inputStyle, btnStyle }
     await fetch(`/api/library/departments/${id}`, { method: "DELETE" }); reload();
   }
   return (
-    <div>
-      <h2>Departments</h2>
-      <div style={cardStyle}>
-        <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="Department name" />
-        <button style={btnStyle} onClick={create}>Add Department</button>
-      </div>
-      {departments.map((d: any) => (
-        <div key={d.id} style={{ ...cardStyle, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span>{d.name}</span>
-          <button onClick={() => remove(d.id)}>Delete</button>
-        </div>
-      ))}
-    </div>
+    <Stack>
+      <Card>
+        <Group>
+          <TextInput flex={1} value={name} onChange={e => setName(e.target.value)} placeholder="Department name" />
+          <Button leftSection={<IconPlus size={16} />} onClick={create}>Add</Button>
+        </Group>
+      </Card>
+      <Table striped highlightOnHover>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>Name</Table.Th>
+            <Table.Th w={80}>Actions</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {departments.map(d => (
+            <Table.Tr key={d.id}>
+              <Table.Td>{d.name}</Table.Td>
+              <Table.Td>
+                <ActionIcon color="red" variant="light" onClick={() => remove(d.id)}>
+                  <IconTrash size={16} />
+                </ActionIcon>
+              </Table.Td>
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
+    </Stack>
   );
 }
 
-function RolesTab({ roles, reload, cardStyle, inputStyle, btnStyle }: any) {
+function RolesTab({ roles, reload }: { roles: Role[]; reload: () => void }) {
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
   async function create() {
+    if (!name.trim()) return;
     await fetch("/api/library/roles", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, description: desc }) });
     setName(""); setDesc(""); reload();
   }
@@ -141,28 +167,46 @@ function RolesTab({ roles, reload, cardStyle, inputStyle, btnStyle }: any) {
     await fetch(`/api/library/roles/${id}`, { method: "DELETE" }); reload();
   }
   return (
-    <div>
-      <h2>Roles / Positions</h2>
-      <div style={cardStyle}>
-        <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="Role name" />
-        <input style={inputStyle} value={desc} onChange={e => setDesc(e.target.value)} placeholder="Description (optional)" />
-        <button style={btnStyle} onClick={create}>Add Role</button>
-      </div>
-      {roles.map((r: any) => (
-        <div key={r.id} style={{ ...cardStyle, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div><b>{r.name}</b>{r.description && <span style={{ opacity: 0.7, marginLeft: 8 }}>{r.description}</span>}</div>
-          <button onClick={() => remove(r.id)}>Delete</button>
-        </div>
-      ))}
-    </div>
+    <Stack>
+      <Card>
+        <Stack gap="sm">
+          <TextInput value={name} onChange={e => setName(e.target.value)} placeholder="Role name" />
+          <TextInput value={desc} onChange={e => setDesc(e.target.value)} placeholder="Description (optional)" />
+          <Button leftSection={<IconPlus size={16} />} onClick={create}>Add Role</Button>
+        </Stack>
+      </Card>
+      <Table striped highlightOnHover>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>Name</Table.Th>
+            <Table.Th>Description</Table.Th>
+            <Table.Th w={80}>Actions</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {roles.map(r => (
+            <Table.Tr key={r.id}>
+              <Table.Td fw={600}>{r.name}</Table.Td>
+              <Table.Td c="dimmed">{r.description || "—"}</Table.Td>
+              <Table.Td>
+                <ActionIcon color="red" variant="light" onClick={() => remove(r.id)}>
+                  <IconTrash size={16} />
+                </ActionIcon>
+              </Table.Td>
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
+    </Stack>
   );
 }
 
-function WorkInstructionsTab({ workInstructions, reload, cardStyle, inputStyle, btnStyle }: any) {
+function WorkInstructionsTab({ workInstructions, reload }: { workInstructions: WorkInstruction[]; reload: () => void }) {
   const [wiCode, setWiCode] = useState("");
   const [title, setTitle] = useState("");
   const [revision, setRevision] = useState("A");
   async function create() {
+    if (!wiCode.trim() || !title.trim()) return;
     await fetch("/api/library/work-instructions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ wiCode, title, revision }) });
     setWiCode(""); setTitle(""); setRevision("A"); reload();
   }
@@ -170,155 +214,241 @@ function WorkInstructionsTab({ workInstructions, reload, cardStyle, inputStyle, 
     await fetch(`/api/library/work-instructions/${id}`, { method: "DELETE" }); reload();
   }
   return (
-    <div>
-      <h2>Work Instructions</h2>
-      <div style={cardStyle}>
-        <input style={inputStyle} value={wiCode} onChange={e => setWiCode(e.target.value)} placeholder="WI Code (e.g. WI-CT-001)" />
-        <input style={inputStyle} value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" />
-        <input style={{ ...inputStyle, width: 100 }} value={revision} onChange={e => setRevision(e.target.value)} placeholder="Rev" />
-        <button style={btnStyle} onClick={create}>Add Work Instruction</button>
-      </div>
-      {workInstructions.map((wi: any) => (
-        <div key={wi.id} style={{ ...cardStyle, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div><b>{wi.wiCode}</b> - {wi.title} <span style={{ opacity: 0.6 }}>(Rev {wi.revision})</span></div>
-          <button onClick={() => remove(wi.id)}>Delete</button>
-        </div>
-      ))}
-    </div>
+    <Stack>
+      <Card>
+        <Group grow>
+          <TextInput value={wiCode} onChange={e => setWiCode(e.target.value)} placeholder="WI Code (e.g. WI-CT-001)" />
+          <TextInput value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" />
+          <TextInput w={100} value={revision} onChange={e => setRevision(e.target.value)} placeholder="Rev" />
+        </Group>
+        <Button mt="sm" leftSection={<IconPlus size={16} />} onClick={create}>Add Work Instruction</Button>
+      </Card>
+      <Table striped highlightOnHover>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>Code</Table.Th>
+            <Table.Th>Title</Table.Th>
+            <Table.Th>Revision</Table.Th>
+            <Table.Th w={80}>Actions</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {workInstructions.map(wi => (
+            <Table.Tr key={wi.id}>
+              <Table.Td><Badge variant="light">{wi.wiCode}</Badge></Table.Td>
+              <Table.Td>{wi.title}</Table.Td>
+              <Table.Td><Badge variant="outline" color="gray">Rev {wi.revision}</Badge></Table.Td>
+              <Table.Td>
+                <ActionIcon color="red" variant="light" onClick={() => remove(wi.id)}>
+                  <IconTrash size={16} />
+                </ActionIcon>
+              </Table.Td>
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
+    </Stack>
   );
 }
 
-function TasksTab({ tasks, departments, workInstructions, reload, cardStyle, inputStyle, btnStyle }: any) {
+function TasksTab({ tasks, departments, workInstructions, reload }: { tasks: Task[]; departments: Department[]; workInstructions: WorkInstruction[]; reload: () => void }) {
   const [name, setName] = useState("");
-  const [deptId, setDeptId] = useState("");
-  const [wiId, setWiId] = useState("");
+  const [deptId, setDeptId] = useState<string | null>(null);
+  const [wiId, setWiId] = useState<string | null>(null);
   async function create() {
-    await fetch("/api/library/tasks", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, departmentId: deptId || null, workInstructionId: wiId || null }) });
-    setName(""); setDeptId(""); setWiId(""); reload();
+    if (!name.trim()) return;
+    await fetch("/api/library/tasks", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, departmentId: deptId, workInstructionId: wiId }) });
+    setName(""); setDeptId(null); setWiId(null); reload();
   }
   async function remove(id: string) {
     await fetch(`/api/library/tasks/${id}`, { method: "DELETE" }); reload();
   }
-  const getDept = (id: string) => departments.find((d: any) => d.id === id)?.name || "";
-  const getWI = (id: string) => workInstructions.find((w: any) => w.id === id)?.wiCode || "";
+  const getDept = (id: string) => departments.find(d => d.id === id)?.name || "";
+  const getWI = (id: string) => workInstructions.find(w => w.id === id)?.wiCode || "";
   return (
-    <div>
-      <h2>Tasks</h2>
-      <div style={cardStyle}>
-        <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="Task name" />
-        <select style={inputStyle} value={deptId} onChange={e => setDeptId(e.target.value)}>
-          <option value="">No department</option>
-          {departments.map((d: any) => <option key={d.id} value={d.id}>{d.name}</option>)}
-        </select>
-        <select style={inputStyle} value={wiId} onChange={e => setWiId(e.target.value)}>
-          <option value="">No work instruction</option>
-          {workInstructions.map((wi: any) => <option key={wi.id} value={wi.id}>{wi.wiCode} - {wi.title}</option>)}
-        </select>
-        <button style={btnStyle} onClick={create}>Add Task</button>
-      </div>
-      {tasks.map((t: any) => (
-        <div key={t.id} style={{ ...cardStyle, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <b>{t.name}</b>
-            {t.departmentId && <span style={{ marginLeft: 8, background: "#e0e0e0", padding: "2px 6px", borderRadius: 4, fontSize: 12 }}>{getDept(t.departmentId)}</span>}
-            {t.workInstructionId && <span style={{ marginLeft: 8, background: "#d0e8ff", padding: "2px 6px", borderRadius: 4, fontSize: 12 }}>{getWI(t.workInstructionId)}</span>}
-          </div>
-          <button onClick={() => remove(t.id)}>Delete</button>
-        </div>
-      ))}
-    </div>
+    <Stack>
+      <Card>
+        <Stack gap="sm">
+          <TextInput value={name} onChange={e => setName(e.target.value)} placeholder="Task name" />
+          <Group grow>
+            <Select
+              clearable
+              placeholder="Select department"
+              data={departments.map(d => ({ value: d.id, label: d.name }))}
+              value={deptId}
+              onChange={setDeptId}
+            />
+            <Select
+              clearable
+              placeholder="Select work instruction"
+              data={workInstructions.map(wi => ({ value: wi.id, label: `${wi.wiCode} - ${wi.title}` }))}
+              value={wiId}
+              onChange={setWiId}
+            />
+          </Group>
+          <Button leftSection={<IconPlus size={16} />} onClick={create}>Add Task</Button>
+        </Stack>
+      </Card>
+      <Table striped highlightOnHover>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>Name</Table.Th>
+            <Table.Th>Department</Table.Th>
+            <Table.Th>Work Instruction</Table.Th>
+            <Table.Th w={80}>Actions</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {tasks.map(t => (
+            <Table.Tr key={t.id}>
+              <Table.Td fw={600}>{t.name}</Table.Td>
+              <Table.Td>{t.departmentId ? <Badge variant="light" color="gray">{getDept(t.departmentId)}</Badge> : "—"}</Table.Td>
+              <Table.Td>{t.workInstructionId ? <Badge variant="light" color="blue">{getWI(t.workInstructionId)}</Badge> : "—"}</Table.Td>
+              <Table.Td>
+                <ActionIcon color="red" variant="light" onClick={() => remove(t.id)}>
+                  <IconTrash size={16} />
+                </ActionIcon>
+              </Table.Td>
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
+    </Stack>
   );
 }
 
-function CriticalPointsTab({ criticalPoints, workInstructions, reload, cardStyle, inputStyle, btnStyle }: any) {
-  const [wiId, setWiId] = useState("");
+function CriticalPointsTab({ criticalPoints, workInstructions, reload }: { criticalPoints: CriticalPoint[]; workInstructions: WorkInstruction[]; reload: () => void }) {
+  const [wiId, setWiId] = useState<string | null>(null);
   const [label, setLabel] = useState("");
   const [detail, setDetail] = useState("");
-  const [severity, setSeverity] = useState("major");
+  const [severity, setSeverity] = useState<string | null>("major");
   async function create() {
-    if (!wiId) return alert("Select a work instruction");
+    if (!wiId || !label.trim()) return;
     await fetch("/api/library/critical-points", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ workInstructionId: wiId, label, detail, severity }) });
     setLabel(""); setDetail(""); reload();
   }
   async function remove(id: string) {
     await fetch(`/api/library/critical-points/${id}`, { method: "DELETE" }); reload();
   }
-  const getWI = (id: string) => workInstructions.find((w: any) => w.id === id)?.wiCode || "";
+  const getWI = (id: string) => workInstructions.find(w => w.id === id)?.wiCode || "";
+  const getSeverityColor = (s: string) => s === "critical" ? "red" : s === "major" ? "orange" : "green";
   return (
-    <div>
-      <h2>Critical Points</h2>
-      <div style={cardStyle}>
-        <select style={inputStyle} value={wiId} onChange={e => setWiId(e.target.value)}>
-          <option value="">Select work instruction</option>
-          {workInstructions.map((wi: any) => <option key={wi.id} value={wi.id}>{wi.wiCode} - {wi.title}</option>)}
-        </select>
-        <input style={inputStyle} value={label} onChange={e => setLabel(e.target.value)} placeholder="Label (short name)" />
-        <input style={inputStyle} value={detail} onChange={e => setDetail(e.target.value)} placeholder="Detail (what/why)" />
-        <select style={{ ...inputStyle, width: 120 }} value={severity} onChange={e => setSeverity(e.target.value)}>
-          <option value="minor">Minor</option>
-          <option value="major">Major</option>
-          <option value="critical">Critical</option>
-        </select>
-        <button style={btnStyle} onClick={create}>Add Critical Point</button>
-      </div>
-      {criticalPoints.map((cp: any) => (
-        <div key={cp.id} style={{ ...cardStyle, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <span style={{ background: "#f0f0f0", padding: "2px 6px", borderRadius: 4, fontSize: 11 }}>{getWI(cp.workInstructionId)}</span>
-            <b style={{ marginLeft: 8 }}>{cp.label}</b>
-            <span style={{ marginLeft: 8, opacity: 0.7 }}>{cp.detail}</span>
-            <span style={{ marginLeft: 8, background: cp.severity === "critical" ? "#f8d7da" : cp.severity === "major" ? "#fff3cd" : "#d4edda", padding: "2px 6px", borderRadius: 4, fontSize: 11 }}>{cp.severity}</span>
-          </div>
-          <button onClick={() => remove(cp.id)}>Delete</button>
-        </div>
-      ))}
-    </div>
+    <Stack>
+      <Card>
+        <Stack gap="sm">
+          <Select
+            placeholder="Select work instruction"
+            data={workInstructions.map(wi => ({ value: wi.id, label: `${wi.wiCode} - ${wi.title}` }))}
+            value={wiId}
+            onChange={setWiId}
+          />
+          <Group grow>
+            <TextInput value={label} onChange={e => setLabel(e.target.value)} placeholder="Label (short name)" />
+            <Select
+              data={[{ value: "minor", label: "Minor" }, { value: "major", label: "Major" }, { value: "critical", label: "Critical" }]}
+              value={severity}
+              onChange={setSeverity}
+            />
+          </Group>
+          <TextInput value={detail} onChange={e => setDetail(e.target.value)} placeholder="Detail (what/why)" />
+          <Button leftSection={<IconPlus size={16} />} onClick={create}>Add Critical Point</Button>
+        </Stack>
+      </Card>
+      <Table striped highlightOnHover>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>Work Instruction</Table.Th>
+            <Table.Th>Label</Table.Th>
+            <Table.Th>Detail</Table.Th>
+            <Table.Th>Severity</Table.Th>
+            <Table.Th w={80}>Actions</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {criticalPoints.map(cp => (
+            <Table.Tr key={cp.id}>
+              <Table.Td><Badge variant="light" color="gray">{getWI(cp.workInstructionId)}</Badge></Table.Td>
+              <Table.Td fw={600}>{cp.label}</Table.Td>
+              <Table.Td c="dimmed">{cp.detail || "—"}</Table.Td>
+              <Table.Td><Badge color={getSeverityColor(cp.severity)}>{cp.severity}</Badge></Table.Td>
+              <Table.Td>
+                <ActionIcon color="red" variant="light" onClick={() => remove(cp.id)}>
+                  <IconTrash size={16} />
+                </ActionIcon>
+              </Table.Td>
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
+    </Stack>
   );
 }
 
-function RoleTasksTab({ roleTasks, roles, tasks, reload, cardStyle, inputStyle, btnStyle }: any) {
-  const [roleId, setRoleId] = useState("");
-  const [taskId, setTaskId] = useState("");
+function RoleTasksTab({ roleTasks, roles, tasks, reload }: { roleTasks: RoleTask[]; roles: Role[]; tasks: Task[]; reload: () => void }) {
+  const [roleId, setRoleId] = useState<string | null>(null);
+  const [taskId, setTaskId] = useState<string | null>(null);
   async function create() {
-    if (!roleId || !taskId) return alert("Select both role and task");
+    if (!roleId || !taskId) return;
     await fetch("/api/library/role-tasks", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ roleId, taskId }) });
     reload();
   }
   async function remove(id: string) {
     await fetch(`/api/library/role-tasks/${id}`, { method: "DELETE" }); reload();
   }
-  const getRole = (id: string) => roles.find((r: any) => r.id === id)?.name || "";
-  const getTask = (id: string) => tasks.find((t: any) => t.id === id)?.name || "";
+  const getRole = (id: string) => roles.find(r => r.id === id)?.name || "";
+  const getTask = (id: string) => tasks.find(t => t.id === id)?.name || "";
   return (
-    <div>
-      <h2>Role-Task Assignments</h2>
-      <p style={{ opacity: 0.7 }}>Assign which tasks belong to each role/position.</p>
-      <div style={cardStyle}>
-        <select style={inputStyle} value={roleId} onChange={e => setRoleId(e.target.value)}>
-          <option value="">Select role</option>
-          {roles.map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}
-        </select>
-        <select style={inputStyle} value={taskId} onChange={e => setTaskId(e.target.value)}>
-          <option value="">Select task</option>
-          {tasks.map((t: any) => <option key={t.id} value={t.id}>{t.name}</option>)}
-        </select>
-        <button style={btnStyle} onClick={create}>Assign Task to Role</button>
-      </div>
-      {roleTasks.map((rt: any) => (
-        <div key={rt.id} style={{ ...cardStyle, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div><b>{getRole(rt.roleId)}</b> → {getTask(rt.taskId)}</div>
-          <button onClick={() => remove(rt.id)}>Remove</button>
-        </div>
-      ))}
-    </div>
+    <Stack>
+      <Text c="dimmed" size="sm">Assign which tasks belong to each role/position.</Text>
+      <Card>
+        <Group grow>
+          <Select
+            placeholder="Select role"
+            data={roles.map(r => ({ value: r.id, label: r.name }))}
+            value={roleId}
+            onChange={setRoleId}
+          />
+          <Select
+            placeholder="Select task"
+            data={tasks.map(t => ({ value: t.id, label: t.name }))}
+            value={taskId}
+            onChange={setTaskId}
+          />
+        </Group>
+        <Button mt="sm" leftSection={<IconPlus size={16} />} onClick={create}>Assign Task</Button>
+      </Card>
+      <Table striped highlightOnHover>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>Role</Table.Th>
+            <Table.Th>Task</Table.Th>
+            <Table.Th w={80}>Actions</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {roleTasks.map(rt => (
+            <Table.Tr key={rt.id}>
+              <Table.Td fw={600}>{getRole(rt.roleId)}</Table.Td>
+              <Table.Td>{getTask(rt.taskId)}</Table.Td>
+              <Table.Td>
+                <ActionIcon color="red" variant="light" onClick={() => remove(rt.id)}>
+                  <IconTrash size={16} />
+                </ActionIcon>
+              </Table.Td>
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
+    </Stack>
   );
 }
 
-function FacilityTopicsTab({ topics, reload, cardStyle, inputStyle, btnStyle }: any) {
+function FacilityTopicsTab({ topics, reload }: { topics: FacilityTopic[]; reload: () => void }) {
   const [code, setCode] = useState("");
   const [title, setTitle] = useState("");
   const [overview, setOverview] = useState("");
   async function create() {
+    if (!code.trim() || !title.trim()) return;
     await fetch("/api/library/facility-topics", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code, title, overview }) });
     setCode(""); setTitle(""); setOverview(""); reload();
   }
@@ -326,34 +456,54 @@ function FacilityTopicsTab({ topics, reload, cardStyle, inputStyle, btnStyle }: 
     await fetch(`/api/library/facility-topics/${id}`, { method: "DELETE" }); reload();
   }
   return (
-    <div>
-      <h2>Facility Topics</h2>
-      <p style={{ opacity: 0.7 }}>Safety and compliance topics (PPE, FOD, ITAR, etc.)</p>
-      <div style={cardStyle}>
-        <input style={inputStyle} value={code} onChange={e => setCode(e.target.value)} placeholder="Code (e.g. PPE)" />
-        <input style={inputStyle} value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" />
-        <input style={inputStyle} value={overview} onChange={e => setOverview(e.target.value)} placeholder="Overview (optional)" />
-        <button style={btnStyle} onClick={create}>Add Topic</button>
-      </div>
-      {topics.map((t: any) => (
-        <div key={t.id} style={{ ...cardStyle, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div><b>{t.code}</b> - {t.title}</div>
-          <button onClick={() => remove(t.id)}>Delete</button>
-        </div>
-      ))}
-    </div>
+    <Stack>
+      <Text c="dimmed" size="sm">Safety and compliance topics (PPE, FOD, ITAR, etc.)</Text>
+      <Card>
+        <Stack gap="sm">
+          <Group grow>
+            <TextInput value={code} onChange={e => setCode(e.target.value)} placeholder="Code (e.g. PPE)" />
+            <TextInput value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" />
+          </Group>
+          <TextInput value={overview} onChange={e => setOverview(e.target.value)} placeholder="Overview (optional)" />
+          <Button leftSection={<IconPlus size={16} />} onClick={create}>Add Topic</Button>
+        </Stack>
+      </Card>
+      <Table striped highlightOnHover>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>Code</Table.Th>
+            <Table.Th>Title</Table.Th>
+            <Table.Th w={80}>Actions</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {topics.map(t => (
+            <Table.Tr key={t.id}>
+              <Table.Td><Badge variant="light">{t.code}</Badge></Table.Td>
+              <Table.Td>{t.title}</Table.Td>
+              <Table.Td>
+                <ActionIcon color="red" variant="light" onClick={() => remove(t.id)}>
+                  <IconTrash size={16} />
+                </ActionIcon>
+              </Table.Td>
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
+    </Stack>
   );
 }
 
-function QuizQuestionsTab({ questions, topics, tasks, reload, cardStyle, inputStyle, btnStyle }: any) {
-  const [topicId, setTopicId] = useState("");
-  const [taskId, setTaskId] = useState("");
+function QuizQuestionsTab({ questions, topics, tasks, reload }: { questions: QuizQuestion[]; topics: FacilityTopic[]; tasks: Task[]; reload: () => void }) {
+  const [topicId, setTopicId] = useState<string | null>(null);
+  const [taskId, setTaskId] = useState<string | null>(null);
   const [question, setQuestion] = useState("");
-  const [type, setType] = useState<"MCQ" | "TF" | "SHORT">("MCQ");
+  const [type, setType] = useState<string | null>("MCQ");
   const [choices, setChoices] = useState("A,B,C,D");
   const [answer, setAnswer] = useState("");
 
   async function create() {
+    if (!question.trim()) return;
     const meta: any = {};
     if (type === "MCQ") {
       meta.choices = choices.split(",").map(c => c.trim());
@@ -364,92 +514,140 @@ function QuizQuestionsTab({ questions, topics, tasks, reload, cardStyle, inputSt
     await fetch("/api/library/quiz-questions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ topicId: topicId || null, taskId: taskId || null, question, type, meta })
+      body: JSON.stringify({ topicId, taskId, question, type, meta })
     });
     setQuestion(""); setAnswer(""); reload();
   }
   async function remove(id: string) {
     await fetch(`/api/library/quiz-questions/${id}`, { method: "DELETE" }); reload();
   }
-  const getTopic = (id: string) => topics.find((t: any) => t.id === id)?.code || "";
-  const getTask = (id: string) => tasks.find((t: any) => t.id === id)?.name || "";
+  const getTopic = (id: string) => topics.find(t => t.id === id)?.code || "";
+  const getTask = (id: string) => tasks.find(t => t.id === id)?.name || "";
 
   return (
-    <div>
-      <h2>Quiz Questions</h2>
-      <div style={cardStyle}>
-        <select style={inputStyle} value={topicId} onChange={e => { setTopicId(e.target.value); setTaskId(""); }}>
-          <option value="">No facility topic</option>
-          {topics.map((t: any) => <option key={t.id} value={t.id}>{t.code} - {t.title}</option>)}
-        </select>
-        <select style={inputStyle} value={taskId} onChange={e => { setTaskId(e.target.value); setTopicId(""); }}>
-          <option value="">No task</option>
-          {tasks.map((t: any) => <option key={t.id} value={t.id}>{t.name}</option>)}
-        </select>
-        <textarea style={{ ...inputStyle, minHeight: 60 }} value={question} onChange={e => setQuestion(e.target.value)} placeholder="Question text" />
-        <select style={{ ...inputStyle, width: 120 }} value={type} onChange={e => setType(e.target.value as any)}>
-          <option value="MCQ">Multiple Choice</option>
-          <option value="TF">True/False</option>
-          <option value="SHORT">Short Answer</option>
-        </select>
-        {type === "MCQ" && (
-          <>
-            <input style={inputStyle} value={choices} onChange={e => setChoices(e.target.value)} placeholder="Choices (comma-separated)" />
-            <input style={inputStyle} value={answer} onChange={e => setAnswer(e.target.value)} placeholder="Correct answer" />
-          </>
-        )}
-        {type === "TF" && (
-          <select style={inputStyle} value={answer} onChange={e => setAnswer(e.target.value)}>
-            <option value="">Select answer</option>
-            <option value="True">True</option>
-            <option value="False">False</option>
-          </select>
-        )}
-        <button style={btnStyle} onClick={create}>Add Question</button>
-      </div>
-      {questions.map((q: any) => (
-        <div key={q.id} style={{ ...cardStyle, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            {q.topicId && <span style={{ background: "#e8d0ff", padding: "2px 6px", borderRadius: 4, fontSize: 11, marginRight: 8 }}>{getTopic(q.topicId)}</span>}
-            {q.taskId && <span style={{ background: "#d0ffe8", padding: "2px 6px", borderRadius: 4, fontSize: 11, marginRight: 8 }}>{getTask(q.taskId)}</span>}
-            <span style={{ background: "#f0f0f0", padding: "2px 6px", borderRadius: 4, fontSize: 11, marginRight: 8 }}>{q.type}</span>
-            {q.question}
-          </div>
-          <button onClick={() => remove(q.id)}>Delete</button>
-        </div>
-      ))}
-    </div>
+    <Stack>
+      <Card>
+        <Stack gap="sm">
+          <Group grow>
+            <Select
+              clearable
+              placeholder="Facility topic (optional)"
+              data={topics.map(t => ({ value: t.id, label: `${t.code} - ${t.title}` }))}
+              value={topicId}
+              onChange={v => { setTopicId(v); setTaskId(null); }}
+            />
+            <Select
+              clearable
+              placeholder="Task (optional)"
+              data={tasks.map(t => ({ value: t.id, label: t.name }))}
+              value={taskId}
+              onChange={v => { setTaskId(v); setTopicId(null); }}
+            />
+          </Group>
+          <Textarea value={question} onChange={e => setQuestion(e.target.value)} placeholder="Question text" minRows={2} />
+          <Select
+            data={[{ value: "MCQ", label: "Multiple Choice" }, { value: "TF", label: "True/False" }, { value: "SHORT", label: "Short Answer" }]}
+            value={type}
+            onChange={setType}
+          />
+          {type === "MCQ" && (
+            <>
+              <TextInput value={choices} onChange={e => setChoices(e.target.value)} placeholder="Choices (comma-separated)" />
+              <TextInput value={answer} onChange={e => setAnswer(e.target.value)} placeholder="Correct answer" />
+            </>
+          )}
+          {type === "TF" && (
+            <Select
+              placeholder="Select answer"
+              data={[{ value: "True", label: "True" }, { value: "False", label: "False" }]}
+              value={answer}
+              onChange={v => setAnswer(v || "")}
+            />
+          )}
+          <Button leftSection={<IconPlus size={16} />} onClick={create}>Add Question</Button>
+        </Stack>
+      </Card>
+      <Table striped highlightOnHover>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>Type</Table.Th>
+            <Table.Th>Topic/Task</Table.Th>
+            <Table.Th>Question</Table.Th>
+            <Table.Th w={80}>Actions</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {questions.map(q => (
+            <Table.Tr key={q.id}>
+              <Table.Td><Badge variant="outline">{q.type}</Badge></Table.Td>
+              <Table.Td>
+                {q.topicId && <Badge variant="light" color="violet">{getTopic(q.topicId)}</Badge>}
+                {q.taskId && <Badge variant="light" color="green">{getTask(q.taskId)}</Badge>}
+                {!q.topicId && !q.taskId && "—"}
+              </Table.Td>
+              <Table.Td style={{ maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis" }}>{q.question}</Table.Td>
+              <Table.Td>
+                <ActionIcon color="red" variant="light" onClick={() => remove(q.id)}>
+                  <IconTrash size={16} />
+                </ActionIcon>
+              </Table.Td>
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
+    </Stack>
   );
 }
 
-function TraineesTab({ trainees, roles, reload, cardStyle, inputStyle, btnStyle }: any) {
+function TraineesTab({ trainees, roles, reload }: { trainees: Trainee[]; roles: Role[]; reload: () => void }) {
   const [name, setName] = useState("");
-  const [roleId, setRoleId] = useState("");
+  const [roleId, setRoleId] = useState<string | null>(null);
   async function create() {
-    await fetch("/api/trainees", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, roleId: roleId || null }) });
-    setName(""); setRoleId(""); reload();
+    if (!name.trim()) return;
+    await fetch("/api/trainees", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, roleId }) });
+    setName(""); setRoleId(null); reload();
   }
   async function remove(id: string) {
     await fetch(`/api/trainees/${id}`, { method: "DELETE" }); reload();
   }
-  const getRole = (id: string) => roles.find((r: any) => r.id === id)?.name || "";
+  const getRole = (id: string) => roles.find(r => r.id === id)?.name || "";
   return (
-    <div>
-      <h2>Trainees</h2>
-      <div style={cardStyle}>
-        <input style={inputStyle} value={name} onChange={e => setName(e.target.value)} placeholder="Trainee name" />
-        <select style={inputStyle} value={roleId} onChange={e => setRoleId(e.target.value)}>
-          <option value="">No role assigned</option>
-          {roles.map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}
-        </select>
-        <button style={btnStyle} onClick={create}>Add Trainee</button>
-      </div>
-      {trainees.map((t: any) => (
-        <div key={t.id} style={{ ...cardStyle, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div><b>{t.name}</b>{t.roleId && <span style={{ marginLeft: 8, opacity: 0.7 }}>({getRole(t.roleId)})</span>}</div>
-          <button onClick={() => remove(t.id)}>Delete</button>
-        </div>
-      ))}
-    </div>
+    <Stack>
+      <Card>
+        <Group grow>
+          <TextInput value={name} onChange={e => setName(e.target.value)} placeholder="Trainee name" />
+          <Select
+            clearable
+            placeholder="Assign role (optional)"
+            data={roles.map(r => ({ value: r.id, label: r.name }))}
+            value={roleId}
+            onChange={setRoleId}
+          />
+        </Group>
+        <Button mt="sm" leftSection={<IconPlus size={16} />} onClick={create}>Add Trainee</Button>
+      </Card>
+      <Table striped highlightOnHover>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>Name</Table.Th>
+            <Table.Th>Role</Table.Th>
+            <Table.Th w={80}>Actions</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {trainees.map(t => (
+            <Table.Tr key={t.id}>
+              <Table.Td fw={600}>{t.name}</Table.Td>
+              <Table.Td>{t.roleId ? <Badge variant="light">{getRole(t.roleId)}</Badge> : "—"}</Table.Td>
+              <Table.Td>
+                <ActionIcon color="red" variant="light" onClick={() => remove(t.id)}>
+                  <IconTrash size={16} />
+                </ActionIcon>
+              </Table.Td>
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
+    </Stack>
   );
 }
