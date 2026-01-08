@@ -1,3 +1,5 @@
+7) Minimal schema for your MVP (Roles → Tasks → WIs → Critical Points → Daily Sheet + Quiz)
+server/src/db/schema.ts
 import {
   pgTable,
   text,
@@ -144,3 +146,9 @@ export const dailyQuizAnswers = pgTable("daily_quiz_answers", {
   correct: boolean("correct").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull()
 });
+
+
+Now generate & migrate:
+
+npm run db:generate
+npm run db:migrate
