@@ -28,7 +28,7 @@ export default function App() {
         </Route>
 
         <Route path="/print/:sessionId">
-          {(params) => <PrintSheet sessionId={params.sessionId} />}
+          <PrintSheet />
         </Route>
 
         <Route path="/quiz/:sessionId">

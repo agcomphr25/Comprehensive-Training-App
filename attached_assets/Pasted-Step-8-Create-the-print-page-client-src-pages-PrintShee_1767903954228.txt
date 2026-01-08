@@ -1,3 +1,5 @@
+Step 8) Create the print page
+client/src/pages/PrintSheet.tsx
 import React, { useEffect, useState } from "react";
 import { useRoute } from "wouter";
 
@@ -96,3 +98,6 @@ export default function PrintSheet() {
     </div>
   );
 }
+
+
+This gives you a clean printable document right now (HTML print). Later, we can convert to PDF server-side.
