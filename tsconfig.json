@@ -2,20 +2,12 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "moduleResolution": "bundler",
-    "esModuleInterop": true,
+    "moduleResolution": "Bundler",
     "strict": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
     "baseUrl": ".",
     "paths": {
       "@shared/*": ["shared/*"]
     }
-  },
-  "include": ["server/**/*", "shared/**/*"],
-  "exclude": ["node_modules", "client"]
+  }
 }

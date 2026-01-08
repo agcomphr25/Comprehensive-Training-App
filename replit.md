@@ -5,10 +5,18 @@ A full-stack TypeScript application with React frontend, Express backend, and Po
 
 ## Project Structure
 ```
-/client        - Vite React app (port 5000)
-/server        - Express API (port 3001)
-/shared        - Shared Zod schemas and types
-/drizzle       - Database migrations
+/client          - Vite React app (port 5000)
+  /src           - React source files
+/server          - Express API (port 3001)
+  /src           - Server source files
+    /db          - Database configuration and schema
+    /routes      - API routes
+    app.ts       - Main Express app
+/shared          - Shared Zod schemas and types
+/drizzle         - Database migrations
+vite.config.ts   - Vite configuration (root)
+drizzle.config.ts - Drizzle configuration
+tsconfig.json    - TypeScript configuration
 ```
 
 ## Key Technologies
@@ -25,10 +33,11 @@ A full-stack TypeScript application with React frontend, Express backend, and Po
 - `npm run db:generate` - Generate Drizzle migrations
 - `npm run db:migrate` - Run migrations
 - `npm run db:push` - Push schema changes directly
-- `npm run db:studio` - Open Drizzle Studio
 
 ## Environment Variables
-- `DATABASE_URL` - PostgreSQL connection string (required for database features)
+- `DATABASE_URL` - PostgreSQL connection string (auto-configured)
+- `NODE_ENV` - Environment mode (development/production)
+- `SESSION_SECRET` - Secret for session management
 
 ## Architecture
 - Vite proxies `/api` requests to the Express server on port 3001
