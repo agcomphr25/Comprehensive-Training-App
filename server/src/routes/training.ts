@@ -348,7 +348,13 @@ trainingRouter.post("/quizzes/:id/submit", async (req, res) => {
     if (q) {
       const meta: any = q.meta ?? {};
       if (q.type === "MCQ") {
-        correct = (a.answer ?? "").trim() === String(meta.answer).trim();
+        const userAnswer = (a.answer ?? "").trim();
+        const correctAnswer = String(meta.answer).trim();
+        // Handle both formats: just the letter "B" or full choice "B. Answer text"
+        // Extract letter from user answer if it starts with a letter followed by period/dot
+        const userLetter = userAnswer.match(/^([A-Da-d])\.?\s/)?.[1]?.toUpperCase() || userAnswer;
+        const correctLetter = correctAnswer.match(/^([A-Da-d])\.?\s/)?.[1]?.toUpperCase() || correctAnswer;
+        correct = userLetter === correctLetter || userAnswer === correctAnswer;
       } else if (q.type === "TF") {
         correct = (a.answer ?? "").trim().toLowerCase() === String(meta.answer).trim().toLowerCase();
       } else {
