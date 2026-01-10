@@ -27,6 +27,7 @@ import {
   IconClipboardCheck,
   IconAlertTriangle,
   IconCheck,
+  IconFileText,
 } from "@tabler/icons-react";
 
 type Trainee = { id: string; name: string; roleId?: string | null };
@@ -265,6 +266,31 @@ export default function TrainerToday() {
               </Group>
 
               <Accordion variant="separated">
+                {block.wiCode && (
+                  <Accordion.Item value="work-instruction">
+                    <Accordion.Control>
+                      <Group gap="xs">
+                        <ThemeIcon size="sm" variant="light" color="blue">
+                          <IconFileText size={14} />
+                        </ThemeIcon>
+                        <Text size="sm" fw={500}>Work Instruction: {block.wiCode} (Rev. {block.wiRevision || "—"})</Text>
+                      </Group>
+                    </Accordion.Control>
+                    <Accordion.Panel>
+                      <Stack gap="sm">
+                        <Text fw={600}>{block.wiTitle}</Text>
+                        {block.wiBody ? (
+                          <Paper p="md" withBorder bg="gray.0" style={{ whiteSpace: "pre-wrap" }}>
+                            <Text size="sm">{block.wiBody}</Text>
+                          </Paper>
+                        ) : (
+                          <Text size="sm" c="dimmed" fs="italic">No work instruction content available.</Text>
+                        )}
+                      </Stack>
+                    </Accordion.Panel>
+                  </Accordion.Item>
+                )}
+
                 <Accordion.Item value="soa">
                   <Accordion.Control>
                     <Group gap="xs">

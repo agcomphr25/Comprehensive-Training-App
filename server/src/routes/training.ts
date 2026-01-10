@@ -130,7 +130,9 @@ trainingRouter.get("/sessions/:id", async (req, res) => {
       departmentId: tasks.departmentId,
       workInstructionId: tasks.workInstructionId,
       wiCode: workInstructions.wiCode,
-      wiTitle: workInstructions.title
+      wiTitle: workInstructions.title,
+      wiBody: workInstructions.body,
+      wiRevision: workInstructions.revision
     })
     .from(dailyTaskBlocks)
     .innerJoin(tasks, eq(tasks.id, dailyTaskBlocks.taskId))
