@@ -16,7 +16,7 @@ import {
   Table,
   Box,
 } from "@mantine/core";
-import { IconTrash, IconPlus } from "@tabler/icons-react";
+import { IconTrash, IconPlus, IconUpload, IconWand, IconLoader } from "@tabler/icons-react";
 
 type Department = { id: string; name: string };
 type Role = { id: string; name: string; description?: string | null };
@@ -205,23 +205,105 @@ function WorkInstructionsTab({ workInstructions, reload }: { workInstructions: W
   const [wiCode, setWiCode] = useState("");
   const [title, setTitle] = useState("");
   const [revision, setRevision] = useState("A");
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importStatus, setImportStatus] = useState<{ jobId?: string; status?: string; message?: string } | null>(null);
+  const [generating, setGenerating] = useState<string | null>(null);
+
   async function create() {
     if (!wiCode.trim() || !title.trim()) return;
     await fetch("/api/library/work-instructions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ wiCode, title, revision }) });
     setWiCode(""); setTitle(""); setRevision("A"); reload();
   }
+
+  async function importPdf() {
+    if (!pdfFile || !wiCode.trim() || !title.trim()) return;
+    setImporting(true);
+    setImportStatus(null);
+    const formData = new FormData();
+    formData.append("file", pdfFile);
+    formData.append("wiCode", wiCode);
+    formData.append("title", title);
+    formData.append("revision", revision);
+    try {
+      const r = await fetch("/api/import/work-instructions/import", { method: "POST", body: formData });
+      const data = await r.json();
+      setImportStatus(data);
+      if (data.jobId) {
+        pollJobStatus(data.jobId);
+      }
+      setWiCode(""); setTitle(""); setRevision("A"); setPdfFile(null);
+      reload();
+    } catch (e: any) {
+      setImportStatus({ status: "error", message: e.message });
+    }
+    setImporting(false);
+  }
+
+  async function pollJobStatus(jobId: string) {
+    const interval = setInterval(async () => {
+      const r = await fetch(`/api/import/work-instructions/import/${jobId}`);
+      const data = await r.json();
+      setImportStatus(data);
+      if (data.status === "completed" || data.status === "failed") {
+        clearInterval(interval);
+        reload();
+      }
+    }, 2000);
+  }
+
+  async function generateQuiz(wiId: string) {
+    setGenerating(wiId);
+    try {
+      await fetch(`/api/import/work-instructions/${wiId}/generate-quiz`, { method: "POST" });
+      reload();
+    } catch (e) {
+      console.error("Quiz generation failed:", e);
+    }
+    setGenerating(null);
+  }
+
   async function remove(id: string) {
     await fetch(`/api/library/work-instructions/${id}`, { method: "DELETE" }); reload();
   }
+
   return (
     <Stack>
       <Card>
+        <Text fw={600} mb="sm">Import from PDF (AI extracts critical points + generates quiz)</Text>
         <Group grow>
           <TextInput value={wiCode} onChange={e => setWiCode(e.target.value)} placeholder="WI Code (e.g. WI-CT-001)" />
           <TextInput value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" />
           <TextInput w={100} value={revision} onChange={e => setRevision(e.target.value)} placeholder="Rev" />
         </Group>
-        <Button mt="sm" leftSection={<IconPlus size={16} />} onClick={create}>Add Work Instruction</Button>
+        <Group mt="sm">
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={e => setPdfFile(e.target.files?.[0] || null)}
+            style={{ flex: 1 }}
+          />
+          <Button
+            leftSection={importing ? <IconLoader size={16} /> : <IconUpload size={16} />}
+            onClick={importPdf}
+            disabled={!pdfFile || !wiCode.trim() || !title.trim() || importing}
+            loading={importing}
+          >
+            Import PDF + AI Analysis
+          </Button>
+          <Button variant="light" leftSection={<IconPlus size={16} />} onClick={create} disabled={!wiCode.trim() || !title.trim()}>
+            Add Manual
+          </Button>
+        </Group>
+        {importStatus && (
+          <Box mt="sm" p="sm" style={{ background: importStatus.status === "failed" ? "#fee" : importStatus.status === "completed" ? "#efe" : "#eef", borderRadius: 8 }}>
+            <Text size="sm" fw={500}>
+              Status: {importStatus.status}
+              {importStatus.status === "completed" && ` - ${(importStatus as any).criticalPointsGenerated || 0} critical points, ${(importStatus as any).quizQuestionsGenerated || 0} quiz questions generated`}
+            </Text>
+            {importStatus.message && <Text size="xs" c="dimmed">{importStatus.message}</Text>}
+          </Box>
+        )}
       </Card>
       <Table striped highlightOnHover>
         <Table.Thead>
@@ -229,7 +311,7 @@ function WorkInstructionsTab({ workInstructions, reload }: { workInstructions: W
             <Table.Th>Code</Table.Th>
             <Table.Th>Title</Table.Th>
             <Table.Th>Revision</Table.Th>
-            <Table.Th w={80}>Actions</Table.Th>
+            <Table.Th w={160}>Actions</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
@@ -239,9 +321,20 @@ function WorkInstructionsTab({ workInstructions, reload }: { workInstructions: W
               <Table.Td>{wi.title}</Table.Td>
               <Table.Td><Badge variant="outline" color="gray">Rev {wi.revision}</Badge></Table.Td>
               <Table.Td>
-                <ActionIcon color="red" variant="light" onClick={() => remove(wi.id)}>
-                  <IconTrash size={16} />
-                </ActionIcon>
+                <Group gap="xs">
+                  <ActionIcon
+                    color="teal"
+                    variant="light"
+                    onClick={() => generateQuiz(wi.id)}
+                    disabled={generating === wi.id}
+                    title="Generate AI Quiz from Critical Points"
+                  >
+                    {generating === wi.id ? <IconLoader size={16} /> : <IconWand size={16} />}
+                  </ActionIcon>
+                  <ActionIcon color="red" variant="light" onClick={() => remove(wi.id)}>
+                    <IconTrash size={16} />
+                  </ActionIcon>
+                </Group>
               </Table.Td>
             </Table.Tr>
           ))}

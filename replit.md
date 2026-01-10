@@ -49,6 +49,13 @@ A full-stack Train-the-Trainer application for manufacturing training programs. 
 3. **Digital Attestation** - Trainer/trainee signatures and competency attestation
 4. **Printable Sheets** - Browser-printable training documentation
 5. **Auto-graded Quizzes** - 80% pass threshold, MCQ and TF auto-graded
+6. **AI-Powered PDF Import** - Upload Work Instruction PDFs, AI extracts critical points and generates quiz questions automatically
+
+## AI Features (OpenAI via Replit AI Integrations)
+- **PDF Import**: Upload Work Instruction PDFs to automatically extract text
+- **Critical Point Extraction**: AI analyzes W/I content to identify safety, quality, and compliance checkpoints
+- **Quiz Generation**: AI creates MCQ and True/False questions based on critical points
+- **On-demand Quiz Regeneration**: Generate new quiz questions for existing W/Is with the wand button
 
 ## API Endpoints
 - `GET/POST/PATCH/DELETE /api/library/departments`
@@ -67,6 +74,9 @@ A full-stack Train-the-Trainer application for manufacturing training programs. 
 - `PATCH /api/training/task-blocks/:id`
 - `POST /api/training/sessions/:id/quiz/generate`
 - `POST /api/training/quizzes/:id/submit`
+- `POST /api/import/work-instructions/import` - Upload PDF and trigger AI analysis
+- `GET /api/import/work-instructions/import/:jobId` - Check import job status
+- `POST /api/import/work-instructions/:wiId/generate-quiz` - Regenerate quiz from critical points
 
 ## Scripts
 - `npm run dev` - Start both client and server
