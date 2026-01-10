@@ -17,16 +17,19 @@ import {
   IconChartBar,
   IconPrinter,
   IconQuestionMark,
+  IconCalendarEvent,
 } from "@tabler/icons-react";
 import TrainerToday from "./pages/TrainerToday";
 import PrintSheet from "./pages/PrintSheet";
 import TraineeQuiz from "./pages/TraineeQuiz";
 import Library from "./pages/Library";
 import TrainingHistory from "./pages/TrainingHistory";
+import TrainingPlans from "./pages/TrainingPlans";
 
 const navItems = [
   { href: "/", label: "Home", icon: IconHome },
   { href: "/trainer", label: "Trainer Dashboard", icon: IconClipboardCheck },
+  { href: "/plans", label: "Training Plans", icon: IconCalendarEvent },
   { href: "/library", label: "Content Library", icon: IconBooks },
   { href: "/history", label: "Training History", icon: IconChartBar },
 ];
@@ -143,6 +146,9 @@ export default function App() {
           </Route>
           <Route path="/trainer">
             <TrainerToday />
+          </Route>
+          <Route path="/plans">
+            <TrainingPlans />
           </Route>
           <Route path="/library">
             <Library />

@@ -50,6 +50,12 @@ A full-stack Train-the-Trainer application for manufacturing training programs. 
 4. **Printable Sheets** - Browser-printable training documentation
 5. **Auto-graded Quizzes** - 80% pass threshold, MCQ and TF auto-graded
 6. **AI-Powered PDF Import** - Upload Work Instruction PDFs, AI extracts critical points and generates quiz questions automatically
+7. **4-Day Training Plans** - Structured training programs with integrated facility topics and knowledge level tracking
+   - Trainers create plans selecting trainee, tasks, and facility topics
+   - Topics have baseline and target knowledge levels (none/basic/intermediate/advanced)
+   - Each day maps to a step in the 4-Step Method
+   - Cross-training trainees can achieve deeper knowledge levels
+   - Plan execution launches daily sessions with pre-configured tasks and topics
 
 ## AI Features (OpenAI via Replit AI Integrations)
 - **PDF Import**: Upload Work Instruction PDFs to automatically extract text
