@@ -150,3 +150,17 @@ export const dailyQuizAnswers = pgTable("daily_quiz_answers", {
   correct: boolean("correct").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull()
 });
+
+/**
+ * Work Instruction Import Jobs (PDF import + AI extraction)
+ */
+export const wiImportJobs = pgTable("wi_import_jobs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  wiId: uuid("wi_id").references(() => workInstructions.id),
+  originalFilename: text("original_filename").notNull(),
+  extractedText: text("extracted_text"),
+  status: text("status").default("uploaded").notNull(), // uploaded | processing | completed | failed
+  error: text("error"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  processedAt: timestamp("processed_at")
+});
