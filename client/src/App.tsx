@@ -27,6 +27,7 @@ import Library from "./pages/Library";
 import TrainingHistory from "./pages/TrainingHistory";
 import TrainingPlans from "./pages/TrainingPlans";
 import TrainerTraining from "./pages/TrainerTraining";
+import TVDisplay from "./pages/TVDisplay";
 
 const navItems = [
   { href: "/", label: "Home", icon: IconHome },
@@ -109,8 +110,9 @@ export default function App() {
   const [location] = useLocation();
   const isPrintPage = location.startsWith("/print/");
   const isQuizPage = location.startsWith("/quiz/");
+  const isTVPage = location === "/tv";
 
-  if (isPrintPage || isQuizPage) {
+  if (isPrintPage || isQuizPage || isTVPage) {
     return (
       <Switch>
         <Route path="/print/:sessionId">
@@ -118,6 +120,9 @@ export default function App() {
         </Route>
         <Route path="/quiz/:sessionId">
           <TraineeQuiz />
+        </Route>
+        <Route path="/tv">
+          <TVDisplay />
         </Route>
       </Switch>
     );
