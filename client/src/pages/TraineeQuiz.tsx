@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useRoute } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import {
   Container,
   Title,
@@ -21,6 +21,7 @@ import { IconCheck, IconX, IconSend } from "@tabler/icons-react";
 
 export default function TraineeQuiz() {
   const [, params] = useRoute("/quiz/:sessionId");
+  const [, setLocation] = useLocation();
   const sessionId = params?.sessionId!;
   const [quiz, setQuiz] = useState<any>(null);
   const [quizId, setQuizId] = useState<string | null>(null);
@@ -53,8 +54,14 @@ export default function TraineeQuiz() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
-    setResult(await r.json());
+    const data = await r.json();
+    setResult(data);
     setSubmitting(false);
+    
+    // Redirect to trainer dashboard after 3 seconds
+    setTimeout(() => {
+      setLocation("/trainer");
+    }, 3000);
   }
 
   useEffect(() => { generate(); }, [sessionId]);
@@ -183,6 +190,9 @@ export default function TraineeQuiz() {
               Passing score is 80%. {result.quiz.passed 
                 ? "Great job on your training!"
                 : "Please review the material and try again."}
+            </Text>
+            <Text size="sm" fw={500} c="blue">
+              Returning to Trainer Dashboard in 3 seconds...
             </Text>
           </Stack>
         </Alert>
