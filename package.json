@@ -8,6 +8,7 @@
     "dev:server": "NODE_ENV=development tsx watch server/src/app.ts",
     "dev:client": "cd client && vite --host 0.0.0.0",
     "build": "cd client && vite build",
+    "start": "NODE_ENV=production tsx server/src/app.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx server/src/db/migrate.ts",
     "db:push": "drizzle-kit push",
