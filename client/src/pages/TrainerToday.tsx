@@ -273,16 +273,34 @@ export default function TrainerToday() {
                         <ThemeIcon size="sm" variant="light" color="blue">
                           <IconFileText size={14} />
                         </ThemeIcon>
-                        <Text size="sm" fw={500}>Work Instruction: {block.wiCode} (Rev. {block.wiRevision || "—"})</Text>
+                        <Text size="sm" fw={500}>Work Instruction</Text>
+                        <Badge variant="outline" size="sm">{block.wiCode}</Badge>
+                        <Badge variant="light" color="gray" size="xs">Rev. {block.wiRevision || "—"}</Badge>
                       </Group>
                     </Accordion.Control>
                     <Accordion.Panel>
-                      <Stack gap="sm">
-                        <Text fw={600}>{block.wiTitle}</Text>
+                      <Stack gap="md">
+                        <Paper p="sm" withBorder radius="md" bg="blue.0">
+                          <Text size="lg" fw={600} c="blue.8">{block.wiTitle}</Text>
+                        </Paper>
                         {block.wiBody ? (
-                          <Paper p="md" withBorder bg="gray.0" style={{ whiteSpace: "pre-wrap" }}>
-                            <Text size="sm">{block.wiBody}</Text>
-                          </Paper>
+                          <Box>
+                            {block.wiBody.split('\n\n').map((paragraph: string, idx: number) => (
+                              <Text 
+                                key={idx} 
+                                size="sm" 
+                                mb="sm"
+                                style={{ lineHeight: 1.6 }}
+                              >
+                                {paragraph.split('\n').map((line: string, lineIdx: number) => (
+                                  <React.Fragment key={lineIdx}>
+                                    {line}
+                                    {lineIdx < paragraph.split('\n').length - 1 && <br />}
+                                  </React.Fragment>
+                                ))}
+                              </Text>
+                            ))}
+                          </Box>
                         ) : (
                           <Text size="sm" c="dimmed" fs="italic">No work instruction content available.</Text>
                         )}
