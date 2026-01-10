@@ -1,5 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { useRoute } from "wouter";
+import {
+  Container,
+  Title,
+  Card,
+  Text,
+  Button,
+  Stack,
+  Radio,
+  Group,
+  Textarea,
+  Paper,
+  Badge,
+  Progress,
+  Alert,
+  Loader,
+  Center,
+} from "@mantine/core";
+import { IconCheck, IconX, IconSend } from "@tabler/icons-react";
 
 export default function TraineeQuiz() {
   const [, params] = useRoute("/quiz/:sessionId");
@@ -8,6 +26,7 @@ export default function TraineeQuiz() {
   const [quizId, setQuizId] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [result, setResult] = useState<any>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   async function generate() {
     const r = await fetch(`/api/training/sessions/${sessionId}/quiz/generate`, {
@@ -22,6 +41,7 @@ export default function TraineeQuiz() {
 
   async function submit() {
     if (!quizId) return;
+    setSubmitting(true);
     const payload = {
       answers: quiz.questions.map((q: any) => ({
         questionId: q.id,
@@ -34,78 +54,139 @@ export default function TraineeQuiz() {
       body: JSON.stringify(payload)
     });
     setResult(await r.json());
+    setSubmitting(false);
   }
 
   useEffect(() => { generate(); }, [sessionId]);
 
-  if (!quiz) return <div>Loading quiz...</div>;
+  const answeredCount = Object.keys(answers).length;
+  const totalQuestions = quiz?.questions?.length ?? 0;
+
+  if (!quiz) {
+    return (
+      <Container size="md" py="xl">
+        <Center>
+          <Stack align="center" gap="md">
+            <Loader size="lg" />
+            <Text c="dimmed">Loading quiz...</Text>
+          </Stack>
+        </Center>
+      </Container>
+    );
+  }
 
   return (
-    <div>
-      <h2>Daily Quiz</h2>
-      <div style={{ fontSize: 12, opacity: 0.8 }}>Session: {sessionId}</div>
+    <Container size="md" py="xl">
+      <Card withBorder shadow="sm" mb="lg" p="lg">
+        <Group justify="space-between" align="center">
+          <div>
+            <Title order={2}>Daily Quiz</Title>
+            <Text size="sm" c="dimmed">Answer all questions and submit</Text>
+          </div>
+          <Badge size="lg" variant="light">
+            {answeredCount} / {totalQuestions} answered
+          </Badge>
+        </Group>
+        <Progress 
+          value={(answeredCount / totalQuestions) * 100} 
+          size="sm" 
+          mt="md" 
+          radius="xl"
+        />
+      </Card>
 
-      {quiz.questions.map((q: any, idx: number) => (
-        <div key={q.id} style={{ border: "1px solid #ddd", padding: 12, borderRadius: 8, marginTop: 12 }}>
-          <b>{idx + 1}. {q.question}</b>
+      <Stack gap="md">
+        {quiz.questions.map((q: any, idx: number) => (
+          <Card key={q.id} withBorder shadow="xs">
+            <Group gap="sm" mb="md">
+              <Badge 
+                size="lg" 
+                circle 
+                variant={answers[q.id] ? "filled" : "light"}
+                color={answers[q.id] ? "teal" : "gray"}
+              >
+                {idx + 1}
+              </Badge>
+              <Text fw={600} style={{ flex: 1 }}>{q.question}</Text>
+            </Group>
 
-          {q.type === "MCQ" && (
-            <div style={{ marginTop: 8 }}>
-              {(q.meta?.choices ?? []).map((c: string) => (
-                <label key={c} style={{ display: "block", marginTop: 4 }}>
-                  <input
-                    type="radio"
-                    name={q.id}
-                    value={c}
-                    checked={answers[q.id] === c}
-                    onChange={(e) => setAnswers(a => ({ ...a, [q.id]: e.target.value }))}
-                  />
-                  {" "}{c}
-                </label>
-              ))}
-            </div>
-          )}
+            {q.type === "MCQ" && (
+              <Radio.Group
+                value={answers[q.id] ?? ""}
+                onChange={(value) => setAnswers(a => ({ ...a, [q.id]: value }))}
+              >
+                <Stack gap="xs" ml="xl">
+                  {(q.meta?.choices ?? []).map((c: string) => (
+                    <Radio key={c} value={c} label={c} />
+                  ))}
+                </Stack>
+              </Radio.Group>
+            )}
 
-          {q.type === "TF" && (
-            <div style={{ marginTop: 8 }}>
-              {["True", "False"].map(v => (
-                <label key={v} style={{ marginRight: 12 }}>
-                  <input
-                    type="radio"
-                    name={q.id}
-                    value={v}
-                    checked={answers[q.id] === v}
-                    onChange={(e) => setAnswers(a => ({ ...a, [q.id]: e.target.value }))}
-                  />
-                  {" "}{v}
-                </label>
-              ))}
-            </div>
-          )}
+            {q.type === "TF" && (
+              <Radio.Group
+                value={answers[q.id] ?? ""}
+                onChange={(value) => setAnswers(a => ({ ...a, [q.id]: value }))}
+              >
+                <Group gap="xl" ml="xl">
+                  <Radio value="True" label="True" />
+                  <Radio value="False" label="False" />
+                </Group>
+              </Radio.Group>
+            )}
 
-          {q.type === "SHORT" && (
-            <textarea
-              style={{ width: "100%", marginTop: 8 }}
-              placeholder="Answer…"
-              value={answers[q.id] ?? ""}
-              onChange={(e) => setAnswers(a => ({ ...a, [q.id]: e.target.value }))}
-            />
-          )}
-        </div>
-      ))}
+            {q.type === "SHORT" && (
+              <Textarea
+                ml="xl"
+                placeholder="Type your answer..."
+                value={answers[q.id] ?? ""}
+                onChange={(e) => setAnswers(a => ({ ...a, [q.id]: e.target.value }))}
+                minRows={3}
+              />
+            )}
+          </Card>
+        ))}
+      </Stack>
 
-      <button style={{ marginTop: 16 }} onClick={submit}>Submit Quiz</button>
+      <Card withBorder shadow="sm" mt="lg" p="lg">
+        <Group justify="space-between" align="center">
+          <Text size="sm" c="dimmed">
+            {totalQuestions - answeredCount > 0 
+              ? `${totalQuestions - answeredCount} question(s) remaining`
+              : "All questions answered!"}
+          </Text>
+          <Button
+            size="lg"
+            leftSection={<IconSend size={20} />}
+            onClick={submit}
+            loading={submitting}
+            disabled={result !== null}
+          >
+            Submit Quiz
+          </Button>
+        </Group>
+      </Card>
 
       {result && (
-        <div style={{ marginTop: 16 }}>
-          <h3>Result</h3>
-          <div>Score: {result.quiz.score} / {result.quiz.total}</div>
-          <div>Passed: {String(result.quiz.passed)}</div>
-          <div style={{ fontSize: 12, opacity: 0.8 }}>
-            Note: SHORT answers aren't auto-graded in MVP.
-          </div>
-        </div>
+        <Alert 
+          mt="lg" 
+          variant="light"
+          color={result.quiz.passed ? "green" : "red"}
+          icon={result.quiz.passed ? <IconCheck size={24} /> : <IconX size={24} />}
+          title={result.quiz.passed ? "Congratulations! You Passed!" : "Not Passed - Review Required"}
+        >
+          <Stack gap="xs">
+            <Text size="lg" fw={600}>
+              Score: {result.quiz.score} / {result.quiz.total} ({Math.round((result.quiz.score / result.quiz.total) * 100)}%)
+            </Text>
+            <Text size="sm" c="dimmed">
+              Passing score is 80%. {result.quiz.passed 
+                ? "Great job on your training!"
+                : "Please review the material and try again."}
+            </Text>
+          </Stack>
+        </Alert>
       )}
-    </div>
+    </Container>
   );
 }
