@@ -7,6 +7,7 @@ import { libraryRouter } from "./routes/library";
 import { trainingRouter } from "./routes/training";
 import { traineesRouter } from "./routes/trainees";
 import importRouter from "./routes/import";
+import plansRouter from "./routes/plans";
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use("/api/library", libraryRouter);
 app.use("/api/training", trainingRouter);
 app.use("/api/trainees", traineesRouter);
 app.use("/api/import", importRouter);
+app.use("/api/plans", plansRouter);
 
 const port = Number(process.env.PORT || 3000);
 app.listen(port, "0.0.0.0", () => {

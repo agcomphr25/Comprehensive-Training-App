@@ -105,6 +105,7 @@ export const dailySessions = pgTable("daily_sessions", {
   trainerName: text("trainer_name").notNull(),
   sessionDate: timestamp("session_date").notNull(),
   facilityTopicId: uuid("facility_topic_id").references(() => facilityTopics.id),
+  planDayId: uuid("plan_day_id"), // Links to training plan day (FK added after table creation)
   traineeSignature: text("trainee_signature"),
   trainerSignature: text("trainer_signature"),
   signedAt: timestamp("signed_at"),
@@ -177,4 +178,63 @@ export const facilityTopicImportJobs = pgTable("facility_topic_import_jobs", {
   error: text("error"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   processedAt: timestamp("processed_at")
+});
+
+/**
+ * 4-Day Training Plans
+ * Knowledge levels: basic | intermediate | advanced
+ * Plan status: draft | scheduled | in_progress | completed | cancelled
+ */
+export const trainingPlans = pgTable("training_plans", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  traineeId: uuid("trainee_id").notNull().references(() => trainees.id),
+  trainerName: text("trainer_name").notNull(),
+  title: text("title").notNull(),
+  startDate: timestamp("start_date"),
+  status: text("status").default("draft").notNull(), // draft | scheduled | in_progress | completed | cancelled
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at")
+});
+
+export const trainingPlanDays = pgTable("training_plan_days", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  planId: uuid("plan_id").notNull().references(() => trainingPlans.id),
+  dayNumber: integer("day_number").notNull(), // 1, 2, 3, or 4
+  stepFocus: text("step_focus").notNull(), // Step 1: Trainer Does/Explains, etc.
+  objectives: text("objectives"),
+  status: text("status").default("pending").notNull(), // pending | in_progress | completed
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+});
+
+export const trainingPlanDayTasks = pgTable("training_plan_day_tasks", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  planDayId: uuid("plan_day_id").notNull().references(() => trainingPlanDays.id),
+  taskId: uuid("task_id").notNull().references(() => tasks.id),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+});
+
+export const trainingPlanDayTopics = pgTable("training_plan_day_topics", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  planDayId: uuid("plan_day_id").notNull().references(() => trainingPlanDays.id),
+  facilityTopicId: uuid("facility_topic_id").notNull().references(() => facilityTopics.id),
+  baselineLevel: text("baseline_level").default("none").notNull(), // none | basic | intermediate | advanced
+  targetLevel: text("target_level").default("basic").notNull(), // basic | intermediate | advanced
+  emphasisNotes: text("emphasis_notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+});
+
+export const traineeTopicKnowledge = pgTable("trainee_topic_knowledge", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  traineeId: uuid("trainee_id").notNull().references(() => trainees.id),
+  topicId: uuid("topic_id").notNull().references(() => facilityTopics.id),
+  currentLevel: text("current_level").default("none").notNull(), // none | basic | intermediate | advanced
+  assessedAt: timestamp("assessed_at"),
+  sourcePlanDayId: uuid("source_plan_day_id").references(() => trainingPlanDays.id),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull()
 });
