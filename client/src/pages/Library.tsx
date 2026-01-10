@@ -20,7 +20,7 @@ import {
   Divider,
   Tooltip,
 } from "@mantine/core";
-import { IconTrash, IconPlus, IconUpload, IconWand, IconLoader } from "@tabler/icons-react";
+import { IconTrash, IconPlus, IconUpload, IconWand, IconLoader, IconPencil, IconCheck, IconX } from "@tabler/icons-react";
 
 type Department = { id: string; name: string };
 type Role = { id: string; name: string; description?: string | null };
@@ -791,6 +791,10 @@ function QuizQuestionsTab({ questions, topics, tasks, reload }: { questions: Qui
 function TraineesTab({ trainees, roles, reload }: { trainees: Trainee[]; roles: Role[]; reload: () => void }) {
   const [name, setName] = useState("");
   const [roleId, setRoleId] = useState<string | null>(null);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editRoleId, setEditRoleId] = useState<string | null>(null);
+
   async function create() {
     if (!name.trim()) return;
     await fetch("/api/trainees", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, roleId }) });
@@ -798,6 +802,24 @@ function TraineesTab({ trainees, roles, reload }: { trainees: Trainee[]; roles: 
   }
   async function remove(id: string) {
     await fetch(`/api/trainees/${id}`, { method: "DELETE" }); reload();
+  }
+  function startEdit(t: Trainee) {
+    setEditId(t.id);
+    setEditName(t.name);
+    setEditRoleId(t.roleId || null);
+  }
+  async function saveEdit() {
+    if (!editId || !editName.trim()) return;
+    await fetch(`/api/trainees/${editId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: editName, roleId: editRoleId })
+    });
+    setEditId(null);
+    reload();
+  }
+  function cancelEdit() {
+    setEditId(null);
   }
   const getRole = (id: string) => roles.find(r => r.id === id)?.name || "";
   return (
@@ -820,19 +842,54 @@ function TraineesTab({ trainees, roles, reload }: { trainees: Trainee[]; roles: 
           <Table.Tr>
             <Table.Th>Name</Table.Th>
             <Table.Th>Role</Table.Th>
-            <Table.Th w={80}>Actions</Table.Th>
+            <Table.Th w={120}>Actions</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
           {trainees.map(t => (
             <Table.Tr key={t.id}>
-              <Table.Td fw={600}>{t.name}</Table.Td>
-              <Table.Td>{t.roleId ? <Badge variant="light">{getRole(t.roleId)}</Badge> : "—"}</Table.Td>
-              <Table.Td>
-                <ActionIcon color="red" variant="light" onClick={() => remove(t.id)}>
-                  <IconTrash size={16} />
-                </ActionIcon>
-              </Table.Td>
+              {editId === t.id ? (
+                <>
+                  <Table.Td>
+                    <TextInput size="xs" value={editName} onChange={e => setEditName(e.target.value)} />
+                  </Table.Td>
+                  <Table.Td>
+                    <Select
+                      size="xs"
+                      clearable
+                      placeholder="Select role"
+                      data={roles.map(r => ({ value: r.id, label: r.name }))}
+                      value={editRoleId}
+                      onChange={setEditRoleId}
+                    />
+                  </Table.Td>
+                  <Table.Td>
+                    <Group gap="xs">
+                      <ActionIcon color="green" variant="light" onClick={saveEdit}>
+                        <IconCheck size={16} />
+                      </ActionIcon>
+                      <ActionIcon color="gray" variant="light" onClick={cancelEdit}>
+                        <IconX size={16} />
+                      </ActionIcon>
+                    </Group>
+                  </Table.Td>
+                </>
+              ) : (
+                <>
+                  <Table.Td fw={600}>{t.name}</Table.Td>
+                  <Table.Td>{t.roleId ? <Badge variant="light">{getRole(t.roleId)}</Badge> : <Text size="sm" c="dimmed">No role assigned</Text>}</Table.Td>
+                  <Table.Td>
+                    <Group gap="xs">
+                      <ActionIcon color="blue" variant="light" onClick={() => startEdit(t)}>
+                        <IconPencil size={16} />
+                      </ActionIcon>
+                      <ActionIcon color="red" variant="light" onClick={() => remove(t.id)}>
+                        <IconTrash size={16} />
+                      </ActionIcon>
+                    </Group>
+                  </Table.Td>
+                </>
+              )}
             </Table.Tr>
           ))}
         </Table.Tbody>

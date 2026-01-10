@@ -28,6 +28,20 @@ traineesRouter.post("/", async (req, res) => {
   res.json(row);
 });
 
+traineesRouter.patch("/:id", async (req, res) => {
+  const id = req.params.id;
+  const parsed = TraineeCreate.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json(parsed.error.flatten());
+
+  const [row] = await db
+    .update(trainees)
+    .set({ name: parsed.data.name, roleId: parsed.data.roleId ?? null })
+    .where(eq(trainees.id, id))
+    .returning();
+
+  res.json(row);
+});
+
 traineesRouter.delete("/:id", async (req, res) => {
   const id = req.params.id;
   await db.delete(trainees).where(eq(trainees.id, id));
