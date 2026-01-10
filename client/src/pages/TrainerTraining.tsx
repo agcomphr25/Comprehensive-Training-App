@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Container,
   Title,
@@ -16,6 +16,9 @@ import {
   Box,
   Grid,
   Table,
+  Button,
+  Radio,
+  Progress,
 } from "@mantine/core";
 import {
   IconSchool,
@@ -32,7 +35,96 @@ import {
   IconHandStop,
   IconCertificate,
   IconStars,
+  IconClipboardCheck,
+  IconRefresh,
 } from "@tabler/icons-react";
+
+const trainerQuizQuestions = [
+  {
+    id: 1,
+    question: "In Step 1 of the 4-Step Training Model, who performs the task?",
+    options: ["A. Trainee performs, trainer watches", "B. Trainer performs and explains", "C. Both perform together", "D. Neither - it's theory only"],
+    answer: "B",
+    category: "4-Step Model"
+  },
+  {
+    id: 2,
+    question: "What does the 'S' stand for in the S-O-A coaching model?",
+    options: ["A. Safety", "B. Standard", "C. Strength", "D. Supervision"],
+    answer: "C",
+    category: "S-O-A Coaching"
+  },
+  {
+    id: 3,
+    question: "Which step verifies trainee comprehension BEFORE hands-on execution?",
+    options: ["A. Step 1", "B. Step 2", "C. Step 3", "D. Step 4"],
+    answer: "B",
+    category: "4-Step Model"
+  },
+  {
+    id: 4,
+    question: "What should a trainer do if a trainee cannot explain a critical point in Step 2?",
+    options: ["A. Move forward anyway", "B. Skip to Step 4", "C. Return to Step 1", "D. End the training session"],
+    answer: "C",
+    category: "4-Step Model"
+  },
+  {
+    id: 5,
+    question: "Which of the following is a PROHIBITED behavior during training?",
+    options: ["A. Immediate feedback", "B. Public embarrassment", "C. Hip-to-hip shadowing", "D. Asking questions"],
+    answer: "B",
+    category: "Prohibited Behaviors"
+  },
+  {
+    id: 6,
+    question: "In the S-O-A model, how should mistakes be framed?",
+    options: ["A. As failures requiring discipline", "B. As learning opportunities", "C. As reasons for termination", "D. As weaknesses to eliminate"],
+    answer: "B",
+    category: "S-O-A Coaching"
+  },
+  {
+    id: 7,
+    question: "In Step 3, the trainer's role is to:",
+    options: ["A. Only observe without intervention", "B. Do the task while trainee watches", "C. Coach and intervene to prevent errors", "D. Leave the trainee alone"],
+    answer: "C",
+    category: "4-Step Model"
+  },
+  {
+    id: 8,
+    question: "When is Task Competency considered achieved?",
+    options: ["A. After Step 1 is complete", "B. After Step 2 is complete", "C. After Step 3 is complete", "D. After successful Step 4 completion"],
+    answer: "D",
+    category: "4-Step Model"
+  },
+  {
+    id: 9,
+    question: "What is the key difference between Teaching and Coaching?",
+    options: ["A. Teaching develops judgment, coaching gives answers", "B. Teaching gives answers, coaching develops judgment", "C. They are the same thing", "D. Teaching is for adults, coaching is for children"],
+    answer: "B",
+    category: "Coaching Fundamentals"
+  },
+  {
+    id: 10,
+    question: "Which phrase represents proper S-O-A feedback?",
+    options: ["A. 'You're doing this wrong'", "B. 'Figure it out yourself'", "C. 'Your prep was spot-on. One opportunity is checking orientation earlier.'", "D. 'That's a mistake you should know better'"],
+    answer: "C",
+    category: "S-O-A Coaching"
+  },
+  {
+    id: 11,
+    question: "What is the goal of this training approach?",
+    options: ["A. Compliance through pressure", "B. Competence with confidence", "C. Speed over accuracy", "D. Individual work without supervision"],
+    answer: "B",
+    category: "Philosophy"
+  },
+  {
+    id: 12,
+    question: "If a trainee repeats errors during training, what should the trainer do?",
+    options: ["A. Raise their voice to emphasize importance", "B. Pause, return to earlier step, document, escalate without judgment", "C. End the training immediately", "D. Publicly correct them in front of peers"],
+    answer: "B",
+    category: "Escalation"
+  },
+];
 
 const stepData = [
   {
@@ -166,6 +258,7 @@ export default function TrainerTraining() {
           <Badge component="a" href="#fundamentals" style={{ cursor: "pointer" }} variant="light">Coaching Fundamentals</Badge>
           <Badge component="a" href="#certification" style={{ cursor: "pointer" }} variant="light">Certification</Badge>
           <Badge component="a" href="#prohibited" style={{ cursor: "pointer" }} variant="light">Prohibited Behaviors</Badge>
+          <Badge component="a" href="#quiz" style={{ cursor: "pointer" }} variant="filled" color="indigo">Take Quiz</Badge>
         </Group>
       </Card>
 
@@ -532,6 +625,9 @@ export default function TrainerTraining() {
           </Card>
         </section>
 
+        {/* Trainer Quiz Section */}
+        <TrainerQuiz />
+
         {/* Cultural Impact */}
         <Card withBorder shadow="sm" bg="gradient" style={{ background: "linear-gradient(135deg, #e6fcf5 0%, #e7f5ff 100%)" }}>
           <Group gap="sm" mb="md">
@@ -571,5 +667,235 @@ export default function TrainerTraining() {
         </Card>
       </Stack>
     </Container>
+  );
+}
+
+function TrainerQuiz() {
+  const [quizStarted, setQuizStarted] = useState(false);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [submitted, setSubmitted] = useState(false);
+  const [shuffledQuestions, setShuffledQuestions] = useState<typeof trainerQuizQuestions>([]);
+
+  const startQuiz = () => {
+    const shuffled = [...trainerQuizQuestions].sort(() => Math.random() - 0.5).slice(0, 10);
+    setShuffledQuestions(shuffled);
+    setQuizStarted(true);
+    setCurrentQuestion(0);
+    setAnswers({});
+    setSubmitted(false);
+  };
+
+  const handleAnswer = (questionId: number, answer: string) => {
+    setAnswers(prev => ({ ...prev, [questionId]: answer }));
+  };
+
+  const submitQuiz = () => {
+    setSubmitted(true);
+  };
+
+  const resetQuiz = () => {
+    setQuizStarted(false);
+    setSubmitted(false);
+    setAnswers({});
+    setCurrentQuestion(0);
+  };
+
+  const score = shuffledQuestions.reduce((acc, q) => {
+    const userAnswer = answers[q.id];
+    if (userAnswer && userAnswer.startsWith(q.answer)) return acc + 1;
+    return acc;
+  }, 0);
+
+  const passed = score >= Math.ceil(shuffledQuestions.length * 0.8);
+
+  if (!quizStarted) {
+    return (
+      <section id="quiz">
+        <Card withBorder shadow="sm">
+          <Group gap="sm" mb="md">
+            <ThemeIcon size="lg" color="indigo" variant="light">
+              <IconClipboardCheck size={20} />
+            </ThemeIcon>
+            <Title order={2}>Trainer Knowledge Quiz</Title>
+          </Group>
+
+          <Text mb="md">
+            Test your understanding of the training methodology, S-O-A coaching, and trainer responsibilities. 
+            You need 80% to pass.
+          </Text>
+
+          <Grid mb="lg">
+            <Grid.Col span={{ base: 12, sm: 4 }}>
+              <Paper p="md" withBorder ta="center">
+                <Text size="xl" fw={700} c="indigo">10</Text>
+                <Text size="sm" c="dimmed">Questions</Text>
+              </Paper>
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, sm: 4 }}>
+              <Paper p="md" withBorder ta="center">
+                <Text size="xl" fw={700} c="orange">80%</Text>
+                <Text size="sm" c="dimmed">Pass Threshold</Text>
+              </Paper>
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, sm: 4 }}>
+              <Paper p="md" withBorder ta="center">
+                <Text size="xl" fw={700} c="teal">Randomized</Text>
+                <Text size="sm" c="dimmed">Each Attempt</Text>
+              </Paper>
+            </Grid.Col>
+          </Grid>
+
+          <Button 
+            size="lg" 
+            fullWidth 
+            onClick={startQuiz}
+            leftSection={<IconSchool size={20} />}
+          >
+            Start Quiz
+          </Button>
+        </Card>
+      </section>
+    );
+  }
+
+  if (submitted) {
+    return (
+      <section id="quiz">
+        <Card withBorder shadow="sm">
+          <Group gap="sm" mb="md">
+            <ThemeIcon size="lg" color={passed ? "green" : "red"} variant="light">
+              {passed ? <IconCheck size={20} /> : <IconX size={20} />}
+            </ThemeIcon>
+            <Title order={2}>Quiz Results</Title>
+          </Group>
+
+          <Paper p="xl" withBorder mb="lg" ta="center" bg={passed ? "green.0" : "red.0"}>
+            <Text size="3rem" fw={700} c={passed ? "green.7" : "red.7"}>
+              {score} / {shuffledQuestions.length}
+            </Text>
+            <Text size="lg" fw={600} c={passed ? "green.7" : "red.7"}>
+              {passed ? "PASSED" : "NOT PASSED"}
+            </Text>
+            <Text size="sm" c="dimmed" mt="xs">
+              {Math.round((score / shuffledQuestions.length) * 100)}% correct
+            </Text>
+          </Paper>
+
+          <Stack gap="md" mb="lg">
+            {shuffledQuestions.map((q, idx) => {
+              const userAnswer = answers[q.id];
+              const isCorrect = userAnswer && userAnswer.startsWith(q.answer);
+              return (
+                <Paper key={q.id} p="md" withBorder bg={isCorrect ? "green.0" : "red.0"}>
+                  <Group gap="xs" mb="xs">
+                    <Badge size="sm" color={isCorrect ? "green" : "red"}>
+                      {isCorrect ? "Correct" : "Incorrect"}
+                    </Badge>
+                    <Badge size="sm" variant="light">{q.category}</Badge>
+                  </Group>
+                  <Text size="sm" fw={500} mb="xs">{idx + 1}. {q.question}</Text>
+                  <Text size="sm" c={isCorrect ? "green.7" : "red.7"}>
+                    Your answer: {userAnswer || "Not answered"}
+                  </Text>
+                  {!isCorrect && (
+                    <Text size="sm" c="green.7" fw={500}>
+                      Correct answer: {q.options.find(o => o.startsWith(q.answer))}
+                    </Text>
+                  )}
+                </Paper>
+              );
+            })}
+          </Stack>
+
+          <Button 
+            fullWidth 
+            onClick={resetQuiz}
+            leftSection={<IconRefresh size={18} />}
+            variant={passed ? "light" : "filled"}
+          >
+            {passed ? "Take Quiz Again" : "Retry Quiz"}
+          </Button>
+        </Card>
+      </section>
+    );
+  }
+
+  const question = shuffledQuestions[currentQuestion];
+  const progress = ((currentQuestion + 1) / shuffledQuestions.length) * 100;
+
+  return (
+    <section id="quiz">
+      <Card withBorder shadow="sm">
+        <Group justify="space-between" mb="md">
+          <Group gap="sm">
+            <ThemeIcon size="lg" color="indigo" variant="light">
+              <IconClipboardCheck size={20} />
+            </ThemeIcon>
+            <Title order={2}>Trainer Knowledge Quiz</Title>
+          </Group>
+          <Badge size="lg" variant="light">
+            Question {currentQuestion + 1} of {shuffledQuestions.length}
+          </Badge>
+        </Group>
+
+        <Progress value={progress} size="sm" mb="lg" color="indigo" />
+
+        <Paper p="lg" withBorder mb="lg">
+          <Badge mb="sm" variant="light">{question.category}</Badge>
+          <Text size="lg" fw={500} mb="lg">{question.question}</Text>
+
+          <Radio.Group
+            value={answers[question.id] || ""}
+            onChange={(value) => handleAnswer(question.id, value)}
+          >
+            <Stack gap="sm">
+              {question.options.map((option) => (
+                <Paper 
+                  key={option} 
+                  p="sm" 
+                  withBorder 
+                  style={{ 
+                    cursor: "pointer",
+                    borderColor: answers[question.id] === option ? "var(--mantine-color-indigo-5)" : undefined,
+                    backgroundColor: answers[question.id] === option ? "var(--mantine-color-indigo-0)" : undefined,
+                  }}
+                  onClick={() => handleAnswer(question.id, option)}
+                >
+                  <Radio value={option} label={option} />
+                </Paper>
+              ))}
+            </Stack>
+          </Radio.Group>
+        </Paper>
+
+        <Group justify="space-between">
+          <Button 
+            variant="light" 
+            disabled={currentQuestion === 0}
+            onClick={() => setCurrentQuestion(prev => prev - 1)}
+          >
+            Previous
+          </Button>
+          
+          {currentQuestion < shuffledQuestions.length - 1 ? (
+            <Button 
+              onClick={() => setCurrentQuestion(prev => prev + 1)}
+              disabled={!answers[question.id]}
+            >
+              Next
+            </Button>
+          ) : (
+            <Button 
+              color="green"
+              onClick={submitQuiz}
+              disabled={Object.keys(answers).length < shuffledQuestions.length}
+            >
+              Submit Quiz
+            </Button>
+          )}
+        </Group>
+      </Card>
+    </section>
   );
 }
