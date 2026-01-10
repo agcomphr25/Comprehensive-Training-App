@@ -189,24 +189,20 @@ router.post("/facility-topics/import", upload.single("file"), async (req, res) =
       extractedText = req.file.buffer.toString("utf-8");
     }
 
-    // Create or update facility topic
+    // Create topic if doesn't exist (don't update content until AI succeeds)
     const existing = await db.select().from(facilityTopics).where(eq(facilityTopics.code, code));
     let topic;
     
     if (existing.length > 0) {
-      [topic] = await db
-        .update(facilityTopics)
-        .set({ title, overview: extractedText })
-        .where(eq(facilityTopics.code, code))
-        .returning();
+      topic = existing[0];
     } else {
       [topic] = await db
         .insert(facilityTopics)
-        .values({ code, title, overview: extractedText })
+        .values({ code, title, overview: "" })
         .returning();
     }
 
-    // Create import job
+    // Create import job with extracted text
     const [job] = await db
       .insert(facilityTopicImportJobs)
       .values({
@@ -217,8 +213,8 @@ router.post("/facility-topics/import", upload.single("file"), async (req, res) =
       })
       .returning();
 
-    // Process async
-    processFacilityTopicImportJob(job.id, topic.id, topic.code, topic.title, extractedText);
+    // Process async - will update topic content only on success
+    processFacilityTopicImportJob(job.id, topic.id, code, title, extractedText);
 
     res.json({ topicId: topic.id, jobId: job.id, status: "processing", message: "Document imported, AI quiz generation started" });
   } catch (error: any) {
@@ -231,15 +227,29 @@ async function processFacilityTopicImportJob(jobId: string, topicId: string, cod
   try {
     const questions = await generateQuizFromFacilityTopic(code, title, text);
 
+    // Deactivate existing quiz questions for this topic before inserting new ones
+    await db
+      .update(quizQuestions)
+      .set({ active: false })
+      .where(eq(quizQuestions.topicId, topicId));
+
+    let insertedCount = 0;
     for (const q of questions) {
       await db.insert(quizQuestions).values({
         topicId: topicId,
         question: q.question,
         type: q.type,
-        meta: { choices: q.choices || [], answer: q.answer },
+        meta: { choices: q.choices || [], answer: q.answer, jobId },
         active: true,
       });
+      insertedCount++;
     }
+
+    // Only update topic content after successful quiz generation
+    await db
+      .update(facilityTopics)
+      .set({ title, overview: text })
+      .where(eq(facilityTopics.id, topicId));
 
     await db
       .update(facilityTopicImportJobs)
@@ -266,8 +276,9 @@ router.get("/facility-topics/import/:jobId", async (req, res) => {
 
   let questionsCount = 0;
   if (job.topicId) {
+    // Count questions specifically created by this job using the jobId stored in meta
     const questions = await db.select().from(quizQuestions).where(eq(quizQuestions.topicId, job.topicId));
-    questionsCount = questions.length;
+    questionsCount = questions.filter((q: any) => q.meta?.jobId === job.id).length;
   }
 
   res.json({
@@ -296,6 +307,12 @@ router.post("/facility-topics/:topicId/generate-quiz", async (req, res) => {
     }
 
     const questions = await generateQuizFromFacilityTopic(topic.code, topic.title, topic.overview);
+
+    // Deactivate existing quiz questions before inserting new ones
+    await db
+      .update(quizQuestions)
+      .set({ active: false })
+      .where(eq(quizQuestions.topicId, topicId));
 
     const inserted = [];
     for (const q of questions) {

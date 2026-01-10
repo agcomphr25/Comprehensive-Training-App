@@ -77,6 +77,9 @@ A full-stack Train-the-Trainer application for manufacturing training programs. 
 - `POST /api/import/work-instructions/import` - Upload PDF and trigger AI analysis
 - `GET /api/import/work-instructions/import/:jobId` - Check import job status
 - `POST /api/import/work-instructions/:wiId/generate-quiz` - Regenerate quiz from critical points
+- `POST /api/import/facility-topics/import` - Upload document and trigger AI quiz generation
+- `GET /api/import/facility-topics/import/:jobId` - Check facility topic import job status
+- `POST /api/import/facility-topics/:topicId/generate-quiz` - Regenerate quiz for facility topic
 
 ## Scripts
 - `npm run dev` - Start both client and server
