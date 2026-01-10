@@ -32,6 +32,7 @@ import {
 type Trainee = { id: string; name: string; roleId?: string | null };
 type FacilityTopic = { id: string; code: string; title: string };
 type SessionResp = { session: any; trainee: any; blocks: any[] };
+type StartError = { error: string } | null;
 
 export default function TrainerToday() {
   const [trainees, setTrainees] = useState<Trainee[]>([]);
@@ -43,6 +44,7 @@ export default function TrainerToday() {
 
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionData, setSessionData] = useState<SessionResp | null>(null);
+  const [startError, setStartError] = useState<StartError>(null);
 
   async function loadData() {
     const [traineeData, topicData] = await Promise.all([
@@ -58,12 +60,17 @@ export default function TrainerToday() {
 
   async function startSession() {
     if (!traineeId || !facilityTopicCode) return;
+    setStartError(null);
     const r = await fetch("/api/training/sessions/start", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ traineeId, trainerName, date, facilityTopicCode })
     });
     const data = await r.json();
+    if (!r.ok) {
+      setStartError(data);
+      return;
+    }
     setSessionId(data.sessionId);
   }
 
@@ -128,10 +135,28 @@ export default function TrainerToday() {
                   value={facilityTopicCode}
                   onChange={setFacilityTopicCode}
                 />
+                {traineeId && !trainees.find(t => t.id === traineeId)?.roleId && (
+                  <Paper p="sm" withBorder bg="orange.0">
+                    <Group gap="xs">
+                      <IconAlertTriangle size={16} color="orange" />
+                      <Text size="sm" c="orange.8">
+                        This trainee has no role assigned. Please assign a role in the Content Library first.
+                      </Text>
+                    </Group>
+                  </Paper>
+                )}
+                {startError && (
+                  <Paper p="sm" withBorder bg="red.0">
+                    <Group gap="xs">
+                      <IconAlertTriangle size={16} color="red" />
+                      <Text size="sm" c="red.8">{startError.error}</Text>
+                    </Group>
+                  </Paper>
+                )}
                 <Button
                   size="lg"
                   leftSection={<IconPlayerPlay size={20} />}
-                  disabled={!traineeId || !facilityTopicCode}
+                  disabled={!traineeId || !facilityTopicCode || !trainees.find(t => t.id === traineeId)?.roleId}
                   onClick={startSession}
                 >
                   Start Session
