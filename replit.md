@@ -51,6 +51,9 @@ A full-stack Train-the-Trainer application for manufacturing training programs. 
 5. **Auto-graded Quizzes** - 80% pass threshold, MCQ and TF auto-graded
 6. **AI-Powered PDF Import** - Upload Work Instruction PDFs, AI extracts critical points and generates quiz questions automatically
 7. **4-Day Training Plans** - Structured training programs with integrated facility topics and knowledge level tracking
+8. **Trainer Training** - Comprehensive educational resource for trainers covering philosophy, 4-Step Model, S-O-A coaching, certification, and prohibited behaviors
+
+**Training Plans Details:**
    - Trainers create plans selecting trainee, tasks, and facility topics
    - Topics have baseline and target knowledge levels (none/basic/intermediate/advanced)
    - Each day maps to a step in the 4-Step Method
