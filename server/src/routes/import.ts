@@ -2,9 +2,9 @@ import { Router } from "express";
 import multer from "multer";
 import { PDFParse } from "pdf-parse";
 import { db } from "../db";
-import { workInstructions, criticalPoints, quizQuestions, wiImportJobs } from "../db/schema";
+import { workInstructions, criticalPoints, quizQuestions, wiImportJobs, facilityTopics, facilityTopicImportJobs } from "../db/schema";
 import { eq } from "drizzle-orm";
-import { extractCriticalPointsFromText, generateQuizFromCriticalPoints } from "../services/ai";
+import { extractCriticalPointsFromText, generateQuizFromCriticalPoints, generateQuizFromFacilityTopic } from "../services/ai";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
@@ -159,6 +159,159 @@ router.post("/work-instructions/:wiId/generate-quiz", async (req, res) => {
     res.json({ generated: inserted.length, questions: inserted });
   } catch (error: any) {
     console.error("Quiz generation error:", error);
+    res.status(500).json({ error: error.message || "Quiz generation failed" });
+  }
+});
+
+// Facility Topic Import Routes
+
+router.post("/facility-topics/import", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const { code, title } = req.body;
+    if (!code || !title) {
+      return res.status(400).json({ error: "code and title are required" });
+    }
+
+    let extractedText = "";
+    
+    // Check if it's a PDF or text file
+    if (req.file.mimetype === "application/pdf") {
+      const parser = new PDFParse({ data: req.file.buffer });
+      const pdfData = await parser.getText();
+      await parser.destroy();
+      extractedText = pdfData.text;
+    } else {
+      // Treat as text file
+      extractedText = req.file.buffer.toString("utf-8");
+    }
+
+    // Create or update facility topic
+    const existing = await db.select().from(facilityTopics).where(eq(facilityTopics.code, code));
+    let topic;
+    
+    if (existing.length > 0) {
+      [topic] = await db
+        .update(facilityTopics)
+        .set({ title, overview: extractedText })
+        .where(eq(facilityTopics.code, code))
+        .returning();
+    } else {
+      [topic] = await db
+        .insert(facilityTopics)
+        .values({ code, title, overview: extractedText })
+        .returning();
+    }
+
+    // Create import job
+    const [job] = await db
+      .insert(facilityTopicImportJobs)
+      .values({
+        topicId: topic.id,
+        originalFilename: req.file.originalname,
+        extractedText,
+        status: "processing",
+      })
+      .returning();
+
+    // Process async
+    processFacilityTopicImportJob(job.id, topic.id, topic.code, topic.title, extractedText);
+
+    res.json({ topicId: topic.id, jobId: job.id, status: "processing", message: "Document imported, AI quiz generation started" });
+  } catch (error: any) {
+    console.error("Facility topic import error:", error);
+    res.status(500).json({ error: error.message || "Import failed" });
+  }
+});
+
+async function processFacilityTopicImportJob(jobId: string, topicId: string, code: string, title: string, text: string) {
+  try {
+    const questions = await generateQuizFromFacilityTopic(code, title, text);
+
+    for (const q of questions) {
+      await db.insert(quizQuestions).values({
+        topicId: topicId,
+        question: q.question,
+        type: q.type,
+        meta: { choices: q.choices || [], answer: q.answer },
+        active: true,
+      });
+    }
+
+    await db
+      .update(facilityTopicImportJobs)
+      .set({ status: "completed", processedAt: new Date() })
+      .where(eq(facilityTopicImportJobs.id, jobId));
+  } catch (error: any) {
+    console.error("Facility topic AI processing error:", error);
+    await db
+      .update(facilityTopicImportJobs)
+      .set({ status: "failed", error: error.message })
+      .where(eq(facilityTopicImportJobs.id, jobId));
+  }
+}
+
+router.get("/facility-topics/import/:jobId", async (req, res) => {
+  const [job] = await db
+    .select()
+    .from(facilityTopicImportJobs)
+    .where(eq(facilityTopicImportJobs.id, req.params.jobId));
+
+  if (!job) {
+    return res.status(404).json({ error: "Import job not found" });
+  }
+
+  let questionsCount = 0;
+  if (job.topicId) {
+    const questions = await db.select().from(quizQuestions).where(eq(quizQuestions.topicId, job.topicId));
+    questionsCount = questions.length;
+  }
+
+  res.json({
+    id: job.id,
+    status: job.status,
+    error: job.error,
+    topicId: job.topicId,
+    originalFilename: job.originalFilename,
+    quizQuestionsGenerated: questionsCount,
+    createdAt: job.createdAt,
+    processedAt: job.processedAt,
+  });
+});
+
+router.post("/facility-topics/:topicId/generate-quiz", async (req, res) => {
+  try {
+    const { topicId } = req.params;
+
+    const [topic] = await db.select().from(facilityTopics).where(eq(facilityTopics.id, topicId));
+    if (!topic) {
+      return res.status(404).json({ error: "Facility topic not found" });
+    }
+
+    if (!topic.overview) {
+      return res.status(400).json({ error: "No content found for this facility topic. Please import a document first." });
+    }
+
+    const questions = await generateQuizFromFacilityTopic(topic.code, topic.title, topic.overview);
+
+    const inserted = [];
+    for (const q of questions) {
+      const [row] = await db.insert(quizQuestions).values({
+        topicId: topicId,
+        question: q.question,
+        type: q.type,
+        meta: { choices: q.choices || [], answer: q.answer },
+        active: true,
+      }).returning();
+      inserted.push(row);
+    }
+
+    res.json({ generated: inserted.length, questions: inserted });
+  } catch (error: any) {
+    console.error("Facility topic quiz generation error:", error);
     res.status(500).json({ error: error.message || "Quiz generation failed" });
   }
 });

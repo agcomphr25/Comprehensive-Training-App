@@ -110,3 +110,50 @@ Generate 5-8 questions total. Respond with a JSON array only, no markdown.`;
     return [];
   }
 }
+
+export async function generateQuizFromFacilityTopic(
+  topicCode: string,
+  topicTitle: string,
+  documentText: string
+): Promise<GeneratedQuizQuestion[]> {
+  const prompt = `You are creating a training quiz for manufacturing facility standards. This quiz tests understanding of facility-wide requirements that all workers must know.
+
+Facility Topic: ${topicCode} - ${topicTitle}
+
+Document Content:
+${documentText.slice(0, 15000)}
+
+Generate quiz questions that test understanding of this facility topic. Create a mix of:
+- Multiple choice questions (MCQ) with 4 choices labeled A, B, C, D
+- True/False questions (TF)
+
+Focus on:
+- Key requirements and rules
+- Safety and compliance aspects
+- Correct procedures and behaviors
+- Common violations to avoid
+
+For each question provide:
+- question: The question text
+- type: "MCQ" or "TF"
+- choices: Array of 4 choices (for MCQ only, omit for TF)
+- answer: The correct answer ("A", "B", "C", "D" for MCQ, or "True"/"False" for TF)
+
+Generate 6-10 questions total. Respond with a JSON array only, no markdown.`;
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [{ role: "user", content: prompt }],
+    temperature: 0.4,
+    max_tokens: 2500,
+  });
+
+  const content = response.choices[0]?.message?.content || "[]";
+  try {
+    const cleaned = content.replace(/```json\n?|\n?```/g, "").trim();
+    return JSON.parse(cleaned);
+  } catch {
+    console.error("Failed to parse facility quiz response:", content);
+    return [];
+  }
+}

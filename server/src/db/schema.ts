@@ -164,3 +164,17 @@ export const wiImportJobs = pgTable("wi_import_jobs", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   processedAt: timestamp("processed_at")
 });
+
+/**
+ * Facility Topic Import Jobs (document import + AI quiz generation)
+ */
+export const facilityTopicImportJobs = pgTable("facility_topic_import_jobs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  topicId: uuid("topic_id").references(() => facilityTopics.id),
+  originalFilename: text("original_filename").notNull(),
+  extractedText: text("extracted_text"),
+  status: text("status").default("uploaded").notNull(), // uploaded | processing | completed | failed
+  error: text("error"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  processedAt: timestamp("processed_at")
+});

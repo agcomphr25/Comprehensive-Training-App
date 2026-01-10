@@ -15,6 +15,10 @@ import {
   ActionIcon,
   Table,
   Box,
+  FileInput,
+  Alert,
+  Divider,
+  Tooltip,
 } from "@mantine/core";
 import { IconTrash, IconPlus, IconUpload, IconWand, IconLoader } from "@tabler/icons-react";
 
@@ -540,6 +544,13 @@ function FacilityTopicsTab({ topics, reload }: { topics: FacilityTopic[]; reload
   const [code, setCode] = useState("");
   const [title, setTitle] = useState("");
   const [overview, setOverview] = useState("");
+  
+  const [importCode, setImportCode] = useState("");
+  const [importTitle, setImportTitle] = useState("");
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importStatus, setImportStatus] = useState<{ status: string; jobId?: string; error?: string; questionsGenerated?: number } | null>(null);
+  const [generatingQuiz, setGeneratingQuiz] = useState<string | null>(null);
+
   async function create() {
     if (!code.trim() || !title.trim()) return;
     await fetch("/api/library/facility-topics", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code, title, overview }) });
@@ -548,9 +559,87 @@ function FacilityTopicsTab({ topics, reload }: { topics: FacilityTopic[]; reload
   async function remove(id: string) {
     await fetch(`/api/library/facility-topics/${id}`, { method: "DELETE" }); reload();
   }
+
+  async function importDocument() {
+    if (!importFile || !importCode.trim() || !importTitle.trim()) return;
+    const formData = new FormData();
+    formData.append("file", importFile);
+    formData.append("code", importCode);
+    formData.append("title", importTitle);
+    setImportStatus({ status: "uploading" });
+    try {
+      const res = await fetch("/api/import/facility-topics/import", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setImportStatus({ status: data.status, jobId: data.jobId });
+      pollImportStatus(data.jobId);
+    } catch (err: any) {
+      setImportStatus({ status: "failed", error: err.message });
+    }
+  }
+
+  async function pollImportStatus(jobId: string) {
+    const poll = async () => {
+      const res = await fetch(`/api/import/facility-topics/import/${jobId}`);
+      const data = await res.json();
+      setImportStatus({ status: data.status, jobId, error: data.error, questionsGenerated: data.quizQuestionsGenerated });
+      if (data.status === "processing") {
+        setTimeout(poll, 2000);
+      } else {
+        reload();
+        if (data.status === "completed") {
+          setImportFile(null);
+          setImportCode("");
+          setImportTitle("");
+        }
+      }
+    };
+    poll();
+  }
+
+  async function regenerateQuiz(topicId: string) {
+    setGeneratingQuiz(topicId);
+    try {
+      await fetch(`/api/import/facility-topics/${topicId}/generate-quiz`, { method: "POST" });
+      reload();
+    } finally {
+      setGeneratingQuiz(null);
+    }
+  }
+
   return (
     <Stack>
       <Text c="dimmed" size="sm">Safety and compliance topics (PPE, FOD, ITAR, etc.)</Text>
+      
+      <Card withBorder>
+        <Stack gap="sm">
+          <Text fw={600} size="sm">Import Document + Generate Quiz (AI)</Text>
+          <Group grow>
+            <TextInput value={importCode} onChange={e => setImportCode(e.target.value)} placeholder="Topic Code (e.g. PPE, FOD, ITAR)" />
+            <TextInput value={importTitle} onChange={e => setImportTitle(e.target.value)} placeholder="Title" />
+          </Group>
+          <FileInput
+            placeholder="Upload PDF or text file with topic information"
+            accept=".pdf,.txt,.doc,.docx"
+            value={importFile}
+            onChange={setImportFile}
+          />
+          <Button leftSection={<IconUpload size={16} />} onClick={importDocument} loading={importStatus?.status === "uploading" || importStatus?.status === "processing"}>
+            Import + AI Quiz Generation
+          </Button>
+          {importStatus && (
+            <Alert color={importStatus.status === "completed" ? "green" : importStatus.status === "failed" ? "red" : "blue"} variant="light">
+              {importStatus.status === "completed" && `Import complete! Generated ${importStatus.questionsGenerated || 0} quiz questions.`}
+              {importStatus.status === "processing" && "AI is generating quiz questions..."}
+              {importStatus.status === "uploading" && "Uploading document..."}
+              {importStatus.status === "failed" && `Error: ${importStatus.error}`}
+            </Alert>
+          )}
+        </Stack>
+      </Card>
+
+      <Divider label="OR Add Manually" labelPosition="center" />
+
       <Card>
         <Stack gap="sm">
           <Group grow>
@@ -566,7 +655,7 @@ function FacilityTopicsTab({ topics, reload }: { topics: FacilityTopic[]; reload
           <Table.Tr>
             <Table.Th>Code</Table.Th>
             <Table.Th>Title</Table.Th>
-            <Table.Th w={80}>Actions</Table.Th>
+            <Table.Th w={120}>Actions</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
@@ -575,9 +664,16 @@ function FacilityTopicsTab({ topics, reload }: { topics: FacilityTopic[]; reload
               <Table.Td><Badge variant="light">{t.code}</Badge></Table.Td>
               <Table.Td>{t.title}</Table.Td>
               <Table.Td>
-                <ActionIcon color="red" variant="light" onClick={() => remove(t.id)}>
-                  <IconTrash size={16} />
-                </ActionIcon>
+                <Group gap="xs">
+                  <Tooltip label="Regenerate Quiz (AI)">
+                    <ActionIcon color="blue" variant="light" onClick={() => regenerateQuiz(t.id)} loading={generatingQuiz === t.id}>
+                      <IconWand size={16} />
+                    </ActionIcon>
+                  </Tooltip>
+                  <ActionIcon color="red" variant="light" onClick={() => remove(t.id)}>
+                    <IconTrash size={16} />
+                  </ActionIcon>
+                </Group>
               </Table.Td>
             </Table.Tr>
           ))}
