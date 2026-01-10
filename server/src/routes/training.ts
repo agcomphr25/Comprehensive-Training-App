@@ -246,9 +246,25 @@ trainingRouter.post("/sessions/:id/quiz/generate", async (req, res) => {
         .limit(20)
     : [];
 
-  // MVP selection logic
-  const pick = <T,>(arr: T[], n: number) => arr.slice(0, n);
-  const selected = [...pick(taskQs, 6), ...pick(facilityQs, 4)].slice(0, 10);
+  // Shuffle function (Fisher-Yates algorithm)
+  function shuffle<T>(array: T[]): T[] {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  // Randomized selection: shuffle pools, then pick subsets
+  const shuffledTaskQs = shuffle(taskQs);
+  const shuffledFacilityQs = shuffle(facilityQs);
+  
+  const pickedTaskQs = shuffledTaskQs.slice(0, 6);
+  const pickedFacilityQs = shuffledFacilityQs.slice(0, 4);
+  
+  // Combine and shuffle final selection for varied question order
+  const selected = shuffle([...pickedTaskQs, ...pickedFacilityQs]).slice(0, 10);
 
   // Create quiz record
   const [quiz] = await db
