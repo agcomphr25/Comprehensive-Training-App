@@ -10,6 +10,8 @@ import { trainingRouter } from "./routes/training";
 import { traineesRouter } from "./routes/trainees";
 import importRouter from "./routes/import";
 import plansRouter from "./routes/plans";
+import { documentsRouter } from "./routes/documents";
+import { topicsRouter } from "./routes/topics";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,6 +27,8 @@ app.use("/api/training", trainingRouter);
 app.use("/api/trainees", traineesRouter);
 app.use("/api/import", importRouter);
 app.use("/api/plans", plansRouter);
+app.use("/api/documents", documentsRouter);
+app.use("/api/topics", topicsRouter);
 
 const isProduction = process.env.NODE_ENV === "production";
 const port = Number(process.env.PORT || (isProduction ? 5000 : 3000));
