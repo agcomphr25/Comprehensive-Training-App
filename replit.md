@@ -14,21 +14,28 @@ A full-stack Train-the-Trainer application for manufacturing training programs. 
 /client               - Vite React app (port 5000)
   /src/pages          - React page components
     TrainerToday.tsx  - Daily session management
-    Library.tsx       - Training content management (9 tabs)
+    Library.tsx       - Data library (departments, roles, tasks, etc.)
+    ContentLibrary.tsx - Document import & training topic creation
     TrainingHistory.tsx - Progress dashboard
     PrintSheet.tsx    - Printable training sheet
     TraineeQuiz.tsx   - Daily quiz interface
 /server               - Express API (port 3000)
   /src/routes         - API routes
     library.ts        - Content CRUD (departments, roles, tasks, WIs, etc.)
+    documents.ts      - Document import with categories
+    topics.ts         - Training topics with AI generation
     training.ts       - Session management, quiz generation
     trainees.ts       - Trainee management
+  /src/services
+    ai.ts             - OpenAI integration for content generation
   /src/db             - Database configuration
-    schema.ts         - Drizzle ORM schema (13 tables)
+    schema.ts         - Drizzle ORM schema (21 tables)
 /drizzle              - Database migrations
 ```
 
 ## Database Schema
+
+### Core Library Tables
 - **departments** - Organizational units
 - **roles** - Positions/job roles
 - **tasks** - Individual training tasks
@@ -37,11 +44,25 @@ A full-stack Train-the-Trainer application for manufacturing training programs. 
 - **role_tasks** - Task assignments per role
 - **facility_topics** - PPE, FOD, ITAR, etc.
 - **quiz_questions** - MCQ, TF, SHORT question bank
+
+### Document Library Tables (NEW)
+- **document_categories** - Categories with type (department/facility/custom)
+- **documents** - Imported PDFs with extracted text
+- **document_category_links** - Many-to-many document-category links
+- **training_topics** - Topics created from documents
+- **topic_documents** - Links topics to source documents
+- **topic_content** - AI-generated 4-step training content per topic
+- **topic_quiz_questions** - AI-generated quiz questions per topic
+- **trainee_topic_assignments** - Topic assignments to trainees
+
+### Training Execution Tables
 - **trainees** - People being trained
 - **daily_sessions** - Training session records with signatures
 - **daily_task_blocks** - 4-step tracking + SOA notes
 - **daily_quizzes** - Quiz attempts and scores
 - **daily_quiz_answers** - Individual answer records
+- **training_plans** - 4-day training plan records
+- **training_plan_days** - Individual day records with step focus
 
 ## Key Features
 1. **Library Management** - Create/manage departments, roles, tasks, work instructions, critical points, facility topics, quiz questions, and trainees
@@ -65,6 +86,8 @@ A full-stack Train-the-Trainer application for manufacturing training programs. 
 - **Critical Point Extraction**: AI analyzes W/I content to identify safety, quality, and compliance checkpoints
 - **Quiz Generation**: AI creates MCQ and True/False questions based on critical points
 - **On-demand Quiz Regeneration**: Generate new quiz questions for existing W/Is with the wand button
+- **Training Topic Generation**: AI creates 4-step training content from selected documents
+- **Topic Quiz Generation**: AI generates 10-15 quiz questions per training topic
 
 ## API Endpoints
 - `GET/POST/PATCH/DELETE /api/library/departments`
@@ -89,6 +112,26 @@ A full-stack Train-the-Trainer application for manufacturing training programs. 
 - `POST /api/import/facility-topics/import` - Upload document and trigger AI quiz generation
 - `GET /api/import/facility-topics/import/:jobId` - Check facility topic import job status
 - `POST /api/import/facility-topics/:topicId/generate-quiz` - Regenerate quiz for facility topic
+
+### Document Library API (NEW)
+- `GET /api/documents/categories` - List all document categories
+- `POST /api/documents/categories` - Create category
+- `PATCH /api/documents/categories/:id` - Update category
+- `DELETE /api/documents/categories/:id` - Delete category
+- `GET /api/documents` - List all documents with categories
+- `GET /api/documents/:id` - Get document details
+- `POST /api/documents/import` - Import PDF with category assignment
+- `DELETE /api/documents/:id` - Delete document
+
+### Training Topics API (NEW)
+- `GET /api/topics` - List all training topics
+- `GET /api/topics/:id` - Get topic with content and questions
+- `POST /api/topics` - Create topic from documents (triggers AI generation)
+- `POST /api/topics/:id/regenerate` - Regenerate AI content
+- `DELETE /api/topics/:id` - Delete topic
+- `GET /api/topics/:id/content` - Get 4-step training content
+- `GET /api/topics/:id/questions` - Get quiz questions
+- `POST /api/topics/assign` - Assign topics to trainee and create 4-day plan
 
 ## Scripts
 - `npm run dev` - Start both client and server
