@@ -238,3 +238,90 @@ export const traineeTopicKnowledge = pgTable("trainee_topic_knowledge", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull()
 });
+
+/**
+ * NEW: Document Library System
+ * Categories: department | facility | custom
+ * Documents: Imported PDFs with extracted text
+ * Training Topics: Created from documents, with AI-generated 4-step content
+ */
+
+export const documentCategories = pgTable("document_categories", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // department | facility | custom
+  description: text("description"),
+  departmentId: uuid("department_id").references(() => departments.id),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+});
+
+export const documents = pgTable("documents", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  title: text("title").notNull(),
+  fileName: text("file_name").notNull(),
+  extractedText: text("extracted_text"),
+  sourceType: text("source_type").default("pdf").notNull(), // pdf | manual
+  status: text("status").default("uploaded").notNull(), // uploaded | processing | ready | failed
+  error: text("error"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  processedAt: timestamp("processed_at")
+});
+
+export const documentCategoryLinks = pgTable("document_category_links", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  documentId: uuid("document_id").notNull().references(() => documents.id),
+  categoryId: uuid("category_id").notNull().references(() => documentCategories.id),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+});
+
+export const trainingTopics = pgTable("training_topics", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  status: text("status").default("draft").notNull(), // draft | generating | ready | failed
+  error: text("error"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  generatedAt: timestamp("generated_at")
+});
+
+export const topicDocuments = pgTable("topic_documents", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  topicId: uuid("topic_id").notNull().references(() => trainingTopics.id),
+  documentId: uuid("document_id").notNull().references(() => documents.id),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+});
+
+export const topicContent = pgTable("topic_content", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  topicId: uuid("topic_id").notNull().references(() => trainingTopics.id),
+  stepNumber: integer("step_number").notNull(), // 1, 2, 3, or 4
+  stepTitle: text("step_title").notNull(),
+  trainerScript: text("trainer_script"), // What trainer says/does
+  traineeActivity: text("trainee_activity"), // What trainee does
+  keyPoints: jsonb("key_points").default([]).notNull(), // Array of key points to cover
+  checklistItems: jsonb("checklist_items").default([]).notNull(), // Trainer checklist
+  estimatedMinutes: integer("estimated_minutes").default(30),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+});
+
+export const topicQuizQuestions = pgTable("topic_quiz_questions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  topicId: uuid("topic_id").notNull().references(() => trainingTopics.id),
+  question: text("question").notNull(),
+  type: text("type").notNull(), // MCQ | TF
+  meta: jsonb("meta").default({}).notNull(), // {choices:[], answer:"A"}
+  active: boolean("active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+});
+
+export const traineeTopicAssignments = pgTable("trainee_topic_assignments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  traineeId: uuid("trainee_id").notNull().references(() => trainees.id),
+  topicId: uuid("topic_id").notNull().references(() => trainingTopics.id),
+  targetLevel: text("target_level").default("basic").notNull(), // basic | intermediate | advanced
+  status: text("status").default("assigned").notNull(), // assigned | in_progress | completed
+  assignedAt: timestamp("assigned_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+  trainingPlanId: uuid("training_plan_id").references(() => trainingPlans.id),
+  createdAt: timestamp("created_at").defaultNow().notNull()
+});
